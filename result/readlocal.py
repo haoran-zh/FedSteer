@@ -483,9 +483,9 @@ extra_folder = {
 # "5task_nnnnn_distribution_lessVenn_ASF0.05_a1c1.0u0.3_": "ASF0.05",
 # "5task_nnnnn_distribution_lessVenn_ASF0.01_a1c1.0u0.3_": "ASF0.01",
 
-# "5task_nnnnn_fairnessfff_ms_a2c120_": "MMFL-FairVR", # data ratio=0.3
-# "5task_nnnnn_fairnessfff_alphafair_a2c120_": "FedFairMMFL",
-# "5task_nnnnn_fairnessfff_randomc120_": "Random",
+"5task_nnnnn_fairnessfff_ms_a2c120_": "MMFL-FairVR", # data ratio=0.3
+"5task_nnnnn_fairnessfff_alphafair_a2c120_": "FedFairMMFL",
+"5task_nnnnn_fairnessfff_randomc120_": "Random",
 
 # "1task_nnnnn_lessVennc0.05uv0.9_AS_a1_": "AS", # active rate-0.05, uv 0.9 0.1, data ratio 1.0
 # "1task_nnnnn_lessVennc0.05uv0.9_ASF0.0_": "ASF0.0",
@@ -939,12 +939,12 @@ extra_folder = {
 # "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.9_e_": "uniform+b0.9",
 # "1task_nnnnn_class0.2c0.1uvNo_a3.0_Ob_e_": "uniform+Ob",
 
-"1task_nnnnn_class0.3c0.1uvNo_a5.0_Ob_icdcs_": "StaleVR",
-"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.5_icdcs_": "FedStale(beta=0.6)",
-"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.6_icdcs_": "FedStale(beta=0.7)",
-"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.7_icdcs_": "FedStale(beta=0.8)",
-"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.8_icdcs_": "FedStale(beta=0.9)",
-"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.9_icdcs_": "FedVARP",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_Ob_icdcs_": "StaleVR",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.5_icdcs_": "FedStale(beta=0.6)",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.6_icdcs_": "FedStale(beta=0.7)",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.7_icdcs_": "FedStale(beta=0.8)",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.8_icdcs_": "FedStale(beta=0.9)",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.9_icdcs_": "FedVARP",
 # available seeds:
 }
 all_rounds=150
@@ -962,7 +962,7 @@ finalPath = f'./result/1task_nnn_test_13'
 
 # make figure wide=8, height=5
 
-fig_avg = plt.figure(figsize=(8,5))
+fig_avg = plt.figure() # figsize=(8,5)
 fig_min = plt.figure()
 ax_avg = fig_avg.add_subplot(1, 1, 1)
 ax_min = fig_min.add_subplot(1, 1, 1)
@@ -1087,17 +1087,18 @@ for key in extra_folder:
     curve_lower = curve_avg - aver_each_seed_curve.std(axis=0)
 
     ax_avg.plot(x, curve_avg, label=next(iter(algo_name)), linestyle=line_list[cnt], marker=marker_list[cnt], markevery=20, linewidth=1.5, markersize=8)
-    final_acc = curve_avg[-1]
-    if horizontal[cnt] == 1:
-        curve_compare.append(curve_avg)
-        ax_avg.axhline(y=final_acc, color='gray', linestyle='--', linewidth=0.8)
-        ax_avg.text(-21, final_acc, f"{final_acc:.2f}", va='center', ha='left', fontsize=15)
+    # final_acc = curve_avg[-1]
+    # if horizontal[cnt] == 1:
+    #     curve_compare.append(curve_avg)
+    #     ax_avg.axhline(y=final_acc, color='gray', linestyle='--', linewidth=0.8)
+    #     ax_avg.text(-21, final_acc, f"{final_acc:.2f}", va='center', ha='left', fontsize=15)
+    ax_min.plot(x, curve_min, label=next(iter(algo_name)), linestyle=line_list[cnt], marker=marker_list[cnt],
+                markevery=20, linewidth=1.5, markersize=8)
 
     cnt+=1
     # ax_avg.fill_between(x, curve_lower, curve_upper, alpha=0.2)
 
 
-    ax_min.plot(x, curve_min, label=next(iter(algo_name)), linestyle=line_list[cnt], marker=marker_list[cnt], markevery=20, linewidth=1.5, markersize=8)
 
 # plot each task
 # if tasknum > 1:
@@ -1118,21 +1119,21 @@ for key in extra_folder:
 # ax_min.set_title(f'Min Accuracy over {tasknum} Models', fontsize=20)
 # ax_min.tick_params(axis='both', which='major', labelsize=20)
 # limit y between 0.2 to 0.8
-ax_avg.set_ylim([0.2, 0.8])
-ax_avg.legend(frameon=False, fontsize=14) # ncol=2
+# ax_avg.set_ylim([0.2, 0.8])
+ax_avg.legend(frameon=False, fontsize=20) # ncol=2
 # make label size larger
 ax_avg.set_xlabel('Num. Global Iterations', fontsize=20)
 ax_avg.set_ylabel('Accuracy', fontsize=20)
-#ax_avg.set_title(f'Avg Accuracy over {tasknum} Models', fontsize=20)
-ax_avg.set_title(f'Accuracy', fontsize=20)
+ax_avg.set_title(f'Avg Accuracy over {tasknum} Models', fontsize=20)
+#ax_avg.set_title(f'Accuracy', fontsize=20)
 ax_avg.tick_params(axis='both', which='major', labelsize=20)
 # make the figure is tight
 
-ax_min.legend(frameon=False)
+ax_min.legend(frameon=False, fontsize=20)
 ax_min.set_xlabel('Num. Global Iterations')
 ax_min.set_ylabel('Accuracy', fontsize=20)
-ax_min.set_title(f'Min Accuracy over {tasknum} Models')
-#ax_min.tick_params(axis='both', which='major', labelsize=20)
+ax_min.set_title(f'Min Accuracy over {tasknum} Models', fontsize=20)
+ax_min.tick_params(axis='both', which='major', labelsize=20)
 
 
 fig = ax_avg.get_figure()
