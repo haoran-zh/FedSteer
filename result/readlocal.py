@@ -530,27 +530,36 @@ extra_folder = {
 # "5task_nnnnn_lessVennc0.1uv0.90.05_full_": "full participation",
 
  # active rate-0.05, uv 0.9 0.1, data ratio 1.0
+# # infocom experiment, 3 tasks
 # "3task_nnnnn_lessVennc0.1uv0.90.1_OS_": "MMFL-GVR",
 # "3task_nnnnn_lessVennc0.1uv0.90.1_AS_": "MMFL-LVR",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_OSstale_f2_": "MMFL-GVR*",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_Diffstale_Ob_f2ff2_": "VR+optimal_b",
-# #"3task_nnnnn_lessVennc0.1uv0.90.1_DiffstaleNoextra_decayop_f2ff2_": "VRApprox+decayApprox",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_DiffstaleNoextra_decay_f2ff2_": "VRApprox+decayLinear",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_Diffstale_decay_f2ff2_": "VR+decayLinear",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_DiffstaleNoextra_b0.7_f_": "VRApprox+decay0.7",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_DiffstaleNoextra_b0.8_f_": "VRApprox+decay0.8",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_DiffstaleNoextra_b0.9_f_": "VRApprox+decay0.9",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_DiffstaleNoextra_b1.0_f_": "VRApprox+decay1.0",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_Diffstale_b0.7_f_": "VR+decay0.7",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_Diffstale_b0.8_f_": "VR+decay0.8",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_Diffstale_b0.9_f_": "VR+decay0.9",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_Diffstale_b1.0_f_": "VR+decay1.0",
-# # "3task_nnnnn_lessVennc0.1uv0.90.1_DiffstaleAll_decayop_": "VR+decayApprox",
-# # # "3task_nnnnn_lessVennc0.1uv0.90.1_FedVARP_a1_": "FedVARP",
-# # # "3task_nnnnn_lessVennc0.1uv0.90.1_MILA_a1_": "MIFA",
-# # # "3task_nnnnn_lessVennc0.1uv0.90.1_SCAFFOLD_a1_": "SCAFFOLD",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_full_f2ff2_": "Full participation",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_random_f2ff2_": "Random",
+# "3task_nnnnn_lessVennc0.1uv0.90.1_Ob_f_": "MMFL-StaleVR",
+# "3task_nnnnn_lessVennc0.1uv0.90.1_GVRsequential_f_": "Sequential-SMVR",
+# # # "3task_nnnnn_lessVennc0.1uv0.90.1_GVRsequential_icdcs_": "Sequential-SMVR2",
+# "3task_nnnnn_lessVennc0.1uv0.90.1_FedVARP_a1_": "FedVARP",
+# "3task_nnnnn_lessVennc0.1uv0.90.1_MILA_a1_": "MIFA",
+# "3task_nnnnn_lessVennc0.1uv0.90.1_SCAFFOLD_a1_": "SCAFFOLD",
+# "3task_nnnnn_lessVennc0.1uv0.90.1_full_ca_": "Full participation",
+# "3task_nnnnn_lessVennc0.1uv0.90.1_random_ca_": "Random",
+
+
+# infocom 5 tasks experiments
+# "5task_nnnnn_lessVennc0.1uv0.60.1_OS_f2ca_": "MMFL-GVR",
+# "5task_nnnnn_lessVennc0.1uv0.60.1_AS_f2ca_": "MMFL-LVR",
+# "5task_nnnnn_lessVennc0.1uv0.60.1_Ob_f_": "MMFL-StaleVR",
+# "5task_nnnnn_lessVennc0.1uv0.60.1_GVRsequential_f_": "Sequential-SMVR",
+# "5task_nnnnn_lessVennc0.1uv0.60.1_FedVARP_f2_": "FedVARP",
+# "5task_nnnnn_lessVennc0.1uv0.60.1_MILA_f2_": "MIFA",
+# "5task_nnnnn_lessVennc0.1uv0.60.1_SCAFFOLD_f2_": "SCAFFOLD",
+# "5task_nnnnn_lessVennc0.1uv0.60.1_full_f2ca_": "Full participation",
+# "5task_nnnnn_lessVennc0.1uv0.60.1_random_f2ca_": "Random",
+
+# icdcs 2 tasks, MMFL vs SMFLs
+# "2task_nnnnn_lessVennc0.3uv0.90.1_GVR_icdcs_": "MMFL-GVR",
+# "2task_nnnnn_lessVennc0.3uv0.90.1_GVRsequential_icdcs_": "Sequential-SMVR",
+
+# "3task_nnnnn_lessVennc0.3uv0.90.1_GVR_icdcs_": "MMFL-GVR",
+# "3task_nnnnn_lessVennc0.3uv0.90.1_GVRsequential_icdcs_": "Sequential-SMVR",
 
 # today I needs to run these three algorithms
 # optimal sampling with stale updates fixed beta: 0.5 0.6 0.7 0.8 0.9
@@ -733,58 +742,75 @@ extra_folder = {
 # "1task_nnnnn_lessVennc0.1uv0.90.1_full_f_": "full participation",
 # "1task_nnnnn_lessVennc0.1uv0.90.1_random_f_": "random",
 
-# fashion-mnist, extreme non-iid: class ratio=0.1
-"1task_nnnnn_class0.1c0.1uv0.90.1_Diffstale_Ob_f_": "VR+optimal_b",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_decay_f_": "VRApprox+decayApprox",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW5AO_decay_f_": "VRApprox-UW5",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW10AO_decay_f_": "VRApprox-UW1-10",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW15AO_decay_f_": "VRApprox-UW1-15",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW20AO_decay_f_": "VRApprox-UW1-20",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW30AO_decay_f_": "VRApprox-UW1-30",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW40AO_decay_f_": "VRApprox-UW1-40",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW5AO_decay_f_": "VRApprox-UW2-5",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW10AO_decay_f_": "VRApprox-UW2-10",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW15AO_decay_f_": "VRApprox-UW2-15",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW20AO_decay_f_": "VRApprox-UW2-20",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW30AO_decay_f_": "VRApprox-UW2-30",
-"1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW40AO_decay_f_": "VRApprox-UW2-40",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSD5AO_decay_f_": "VRApprox-UWSD5",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSD10AO_decay_f_": "VRApprox-UWSD10",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSD15AO_decay_f_": "VRApprox-UWSD15",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSD20AO_decay_f_": "VRApprox-UWSD20",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSD30AO_decay_f_": "VRApprox-UWSD30",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSD40AO_decay_f_": "VRApprox-UWSD40",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSL5AO_decay_f_": "VRApprox-UWSL5",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSL10AO_decay_f_": "VRApprox-UWSL10",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSL15AO_decay_f_": "VRApprox-UWSL15",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSL20AO_decay_f_": "VRApprox-UWSL20",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSL30AO_decay_f_": "VRApprox-UWSL30",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWSL40AO_decay_f_": "VRApprox-UWSL40",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW10AO_decay_B0.2_": "VRApprox-UW10B0.2",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW15AO_decay_B0.2_": "VRApprox-UW15B0.2",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW20AO_decay_B0.2_": "VRApprox-UW20B0.2",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW30AO_decay_B0.2_": "VRApprox-UW30B0.2",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW40AO_decay_B0.2_": "VRApprox-UW40B0.2",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw5AO_decay_f_": "VRApprox-w5",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw10AO_decay_f_": "VRApprox-w10",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw15AO_decay_f_": "VRApprox-w15",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw20AO_decay_f_": "VRApprox-w20",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw30AO_decay_f_": "VRApprox-w30",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw40AO_decay_f_": "VRApprox-w40",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.5_f_": "VRApprox+b0.5",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.6_f_": "VRApprox+b0.6",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.7_f_": "VRApprox+b0.7",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.8_f_": "VRApprox+b0.8",
-# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.9_f_": "VRApprox+b0.9",
-"1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.5_f_": "uniform+b0.5",
-"1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.6_f_": "uniform+b0.6",
-"1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.7_f_": "uniform+b0.7",
-"1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.8_f_": "uniform+b0.8",
-"1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.9_f_": "uniform+b0.9",
-"1task_nnnnn_class0.1c0.1uv0.90.1_full_f_": "full participation",
-"1task_nnnnn_class0.1c0.1uv0.90.1_random_f_": "random",
-"1task_nnnnn_class0.1c0.1uv0.90.1_GVR_f_": "GVR",
-"1task_nnnnn_class0.1c0.1uv0.90.1_GVRApprox_f_": "GVRApprox",
+# # # fashion-mnist, extreme non-iid: class ratio=0.1
+# "1task_nnnnn_class0.1c0.1uv0.90.1_Diffstale_Ob_f_": "VR+optimal_b",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2real-5_f_": "VROb-UW2-5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2m40-5_f_": "VROb-UW2m40-5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2real-10_f_": "VROb-UW2-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2m65-10_f_": "VROb-UW2m65-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2real-20_f_": "VROb-UW2-20",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2real-40_f_": "VROb-UW2-40",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2-5_f_": "VROb-UW3-5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW3m40-5_f_": "VROb-UW3m40-5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2-10_f_": "VROb-UW3-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW3m65-10_f_": "VROb-UW3m65-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2-20_f_": "VROb-UW3-20",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_Ob_UW2-40_f_": "VROb-UW3-40",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_decay_f_": "VRApprox+decayApprox",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW5AO_decay_f_": "VRApprox-UW1-5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW1m40-5AO_decay_f_": "VRApprox-UW1m40-5",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW10AO_decay_f_": "VRApprox-UW1-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW1m65-10AO_decay_f_": "VRApprox-UW1m65-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW15AO_decay_f_": "VRApprox-UW1-15",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW20AO_decay_f_": "VRApprox-UW1-20",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW30AO_decay_f_": "VRApprox-UW1-30",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW40AO_decay_f_": "VRApprox-UW1-40",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW5AO_decay_f_": "VRApprox-UW2-5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW2m40-5AO_decay_f_": "VRApprox-UW2m40-5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW10AO_decay_f_": "VRApprox-UW2-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW2m65-10AO_decay_f_": "VRApprox-UW2m65-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW15AO_decay_f_": "VRApprox-UW2-15",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW20AO_decay_f_": "VRApprox-UW2-20",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW30AO_decay_f_": "VRApprox-UW2-30",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUWW40AO_decay_f_": "VRApprox-UW2-40",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW3-5AO_decay_f_": "VRApprox-UW3-5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW3m40-5AO_decay_f_": "VRApprox-UW3m40-5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW3-10AO_decay_f_": "VRApprox-UW3-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW3m65-10AO_decay_f_": "VRApprox-UW3m65-10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW3-15AO_decay_f_": "VRApprox-UW3-15",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW3-20AO_decay_f_": "VRApprox-UW3-20",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW3-30AO_decay_f_": "VRApprox-UW3-30",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraUW3-40AO_decay_f_": "VRApprox-UW3-40",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextra_K20_decay_f_": "VRApprox-K20",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextra_K30_decay_f_": "VRApprox-K30",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextra_K40_decay_f_": "VRApprox-K40",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextra_K50_decay_f_": "VRApprox-K50",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextra_K60_decay_f_": "VRApprox-K60",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextra_K70_decay_f_": "VRApprox-K70",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextra_K80_decay_f_": "VRApprox-K80",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextra_K90_decay_f_": "VRApprox-K90",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextra_K100_decay_f_": "VRApprox-K100",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw5AO_decay_f_": "VRApprox-w5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw10AO_decay_f_": "VRApprox-w10",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw15AO_decay_f_": "VRApprox-w15",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw20AO_decay_f_": "VRApprox-w20",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw30AO_decay_f_": "VRApprox-w30",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraw40AO_decay_f_": "VRApprox-w40",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.5_f_": "VRApprox+b0.5",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.6_f_": "VRApprox+b0.6",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.7_f_": "VRApprox+b0.7",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.8_f_": "VRApprox+b0.8",
+# # "1task_nnnnn_class0.1c0.1uv0.90.1_DiffstaleNoextraAO_b0.9_f_": "VRApprox+b0.9",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.5_f_": "uniform+b0.5",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.6_f_": "uniform+b0.6",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.7_f_": "uniform+b0.7",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.8_f_": "uniform+b0.8",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_uniform_b0.9_f_": "uniform+b0.9",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_uniform_Ob_f_": "uniform+Ob",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_full_f_": "full participation",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_random_f_": "random",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_GVR_f_": "GVR",
+# "1task_nnnnn_class0.1c0.1uv0.90.1_GVRApprox_f_": "GVRApprox",
 
 # # fashion-mnist, extreme non-iid: class ratio=0.1
 # "5task_nnnnn_class0.1c0.3uv0.90.1_Diffstale_Ob_f_": "VR+optimal_b",
@@ -823,21 +849,120 @@ extra_folder = {
 # # "5task_nnnnn_class0.1c0.3uv0.90.1_SCAFFOLD_f_": "SCAFFOLD",
 # #"1task_nnnnn_class0.1c0.1uv0.90.1_GVR_f_": "GVR",
 # #"1task_nnnnn_class0.1c0.1uv0.90.1_GVRApprox_f_": "GVRApprox",
+
+# # 3 task fashion-mnist # accuracy too low
+# # fashion-mnist, extreme non-iid: class ratio=0.1
+# "3task_nnnnn_class0.1c0.3uv0.90.1_Diffstale_Ob_f_": "VR+optimal_b",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraAO_decay_f_": "VRApprox+decayApprox",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW1-5AO_decay_f_": "VRApprox-UW1-5",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW1-10AO_decay_f_": "VRApprox-UW1-10",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW1-20AO_decay_f_": "VRApprox-UW1-20",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW1-40AO_decay_f_": "VRApprox-UW1-40",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW2-5AO_decay_f_": "VRApprox-UW2-5",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW2-10AO_decay_f_": "VRApprox-UW2-10",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW2-20AO_decay_f_": "VRApprox-UW2-20",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW2-40AO_decay_f_": "VRApprox-UW2-40",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW3-5AO_decay_f_": "VRApprox-UW3-5",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW3-10AO_decay_f_": "VRApprox-UW3-10",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW3-20AO_decay_f_": "VRApprox-UW3-20",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_DiffstaleNoextraUW3-40AO_decay_f_": "VRApprox-UW3-40",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_uniform_b0.7_f_": "uniform+b0.7",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_uniform_b0.8_f_": "uniform+b0.8",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_uniform_b0.9_f_": "uniform+b0.9",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_full_f_": "full participation",
+# "3task_nnnnn_class0.1c0.3uv0.90.1_random_f_": "random",
+
+
+# "1task_nnnnn_class0.3c0.1uv0.90.1_Diffstale_Ob_m_": "VR+optimal_b",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraAO_decay_m_": "VRApprox+decayApprox",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW1-5AO_decay_m_": "VRApprox-UW1-5",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW1m40-5AO_decay_m_": "VRApprox-UW1m40-5",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW1-10AO_decay_m_": "VRApprox-UW1-10",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW1m65-10AO_decay_m_": "VRApprox-UW1m65-10",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW1-20AO_decay_m_": "VRApprox-UW1-20",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW1-40AO_decay_m_": "VRApprox-UW1-40",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW2-5AO_decay_m_": "VRApprox-UW2-5",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW2m40-5AO_decay_m_": "VRApprox-UW2m40-5",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW2-10AO_decay_m_": "VRApprox-UW2-10",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW2m65-10AO_decay_m_": "VRApprox-UW2m65-10",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW2-20AO_decay_m_": "VRApprox-UW2-20",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW2-40AO_decay_m_": "VRApprox-UW2-40",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW3-5AO_decay_m_": "VRApprox-UW3-5",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW3m40-5AO_decay_m_": "VRApprox-UW3m40-5",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW3-10AO_decay_m_": "VRApprox-UW3-10",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW3m65-10AO_decay_m_": "VRApprox-UW3m65-10",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW3-20AO_decay_m_": "VRApprox-UW3-20",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_DiffstaleNoextraUW3-40AO_decay_m_": "VRApprox-UW3-40",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_full_m_": "full participation",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_random_m_": "random",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_uniform_b0.5_m_": "uniform+b0.5",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_uniform_b0.6_m_": "uniform+b0.6",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_uniform_b0.7_m_": "uniform+b0.7",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_uniform_b0.8_m_": "uniform+b0.8",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_uniform_b0.9_m_": "uniform+b0.9",
+# "1task_nnnnn_class0.3c0.1uv0.90.1_uniform_Ob_m_": "uniform+Ob",
+
+# "1task_nnnnn_class0.2c0.1uv0.90.1_Diffstale_Ob_e_": "VR+optimal_b",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraAO_decay_e_": "VRApprox+decayApprox",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW1-5AO_decay_e_": "VRApprox-UW1-5",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW1m40-5AO_decay_e_": "VRApprox-UW1m40-5",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW1-10AO_decay_e_": "VRApprox-UW1-10",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW1m65-10AO_decay_e_": "VRApprox-UW1m65-10",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW1-20AO_decay_e_": "VRApprox-UW1-20",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW1-40AO_decay_e_": "VRApprox-UW1-40",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW2-5AO_decay_e_": "VRApprox-UW2-5",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW2m40-5AO_decay_e_": "VRApprox-UW2m40-5",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW2-10AO_decay_e_": "VRApprox-UW2-10",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW2m65-10AO_decay_e_": "VRApprox-UW2m65-10",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW2-20AO_decay_e_": "VRApprox-UW2-20",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW2-40AO_decay_e_": "VRApprox-UW2-40",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW3-5AO_decay_e_": "VRApprox-UW3-5",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW3m40-5AO_decay_e_": "VRApprox-UW3m40-5",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW3-10AO_decay_e_": "VRApprox-UW3-10",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW3m65-10AO_decay_e_": "VRApprox-UW3m65-10",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW3-20AO_decay_e_": "VRApprox-UW3-20",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_DiffstaleNoextraUW3-40AO_decay_e_": "VRApprox-UW3-40",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_full_e_": "full participation",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_random_e_": "random",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_uniform_b0.5_e_": "uniform+b0.5",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_uniform_b0.6_e_": "uniform+b0.6",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_uniform_b0.7_e_": "uniform+b0.7",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_uniform_b0.8_e_": "uniform+b0.8",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_uniform_b0.9_e_": "uniform+b0.9",
+# "1task_nnnnn_class0.2c0.1uv0.90.1_uniform_Ob_e_": "uniform+Ob",
+
+# fixed sampling
+# "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.5_e_": "+b0.5",
+# "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.6_e_": "uniform+b0.6",
+# "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.7_e_": "uniform+b0.7",
+# "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.8_e_": "uniform+b0.8",
+# "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.9_e_": "uniform+b0.9",
+# "1task_nnnnn_class0.2c0.1uvNo_a3.0_Ob_e_": "uniform+Ob",
+
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_Ob_icdcs_": "StaleVR",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.5_icdcs_": "FedStale(beta=0.6)",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.6_icdcs_": "FedStale(beta=0.7)",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.7_icdcs_": "FedStale(beta=0.8)",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.8_icdcs_": "FedStale(beta=0.9)",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.9_icdcs_": "FedVARP",
+# available seeds:
 }
 all_rounds=150
-# m: (not 11), 12,13,14 (not 15),16,17 (not 18 19)
+# 12 13
 seed_list = [12,13,14,15,16,17,18]
+horizontal = [1, 0, 0, 1, 0, 0]
 tasknum= 3
+curve_compare = []
 # 17 16 15
-line_list = ['-', '-', '-', '-', '-','-','--','-','-','-','-', '--','-','-','-','-','--','-','-','-','-','-','-','-','--','-','-','-','-','-','-','-','-','--','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-']
-marker_list =['o', 's', 'v','^', 'p','D','X', 'P','^', 'p','D','X', 'P','p','D','X', 'P','p','D','X', 'P','p','D','X', 'P','D','X', 'P','p','D','X', 'P','X', 'P','P','X','P','p','D','X', 'P','X', 'P','P','X']
+line_list = ['-', '-', '-', '-', '-','-','-','--','-','-','-','-', '--','-','-','-','-','--','-','-','-','-','-','-','-','--','-','-','-','-','-','-','-','-','--','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-']
+marker_list =['o', 's', 'v','^', 'p','D','X', 'P','^', 'p','D','X', 'P','p','D','X', 'P','p','D','X', 'P','p','D','X', 'P','D','X', 'P','p','D','X', 'P','X', 'P','P','X','P','p','D','X', 'P','X', 'P','P','X','D','X', 'P','X', 'P','P','X']
 # sd 21 is good,
 # sd 19, 20 is bad
 finalPath = f'./result/1task_nnn_test_13'
 
 # make figure wide=8, height=5
 
-fig_avg = plt.figure()
+fig_avg = plt.figure(figsize=(8,5))
 fig_min = plt.figure()
 ax_avg = fig_avg.add_subplot(1, 1, 1)
 ax_min = fig_min.add_subplot(1, 1, 1)
@@ -946,6 +1071,9 @@ for key in extra_folder:
     #print(f"{algoName: <10}: \t worst20% {worst10_avg:.3f}, best20% {best10_avg:.3f}; Global acc: {global_avg_acc:.3f} entropy: {exp_array_entropy:.3f}, KL{kl:.4f} client_var: {client_var_avg:.3f}")
     #averge the curve
     curve = np.array(curve) # shape: seed tasknum numRounds
+    # for 5 tasks experiment only
+    # curve = curve[:,:4,:]
+    # tasknum = 4
     x = np.arange(curve.shape[-1])
     # get the upper and lower bound of the curve
     aver_each_seed_curve = np.mean(curve, axis=1)
@@ -958,12 +1086,18 @@ for key in extra_folder:
     curve_upper = curve_avg + aver_each_seed_curve.std(axis=0)
     curve_lower = curve_avg - aver_each_seed_curve.std(axis=0)
 
-    ax_avg.plot(x, curve_avg, label=next(iter(algo_name)), linestyle=line_list[cnt], marker=marker_list[cnt], markevery=20, linewidth=1)
+    ax_avg.plot(x, curve_avg, label=next(iter(algo_name)), linestyle=line_list[cnt], marker=marker_list[cnt], markevery=20, linewidth=1.5, markersize=8)
+    final_acc = curve_avg[-1]
+    if horizontal[cnt] == 1:
+        curve_compare.append(curve_avg)
+        ax_avg.axhline(y=final_acc, color='gray', linestyle='--', linewidth=0.8)
+        ax_avg.text(-21, final_acc, f"{final_acc:.2f}", va='center', ha='left', fontsize=15)
+
     cnt+=1
     # ax_avg.fill_between(x, curve_lower, curve_upper, alpha=0.2)
 
 
-    ax_min.plot(x, curve_min, label=next(iter(algo_name)), linestyle=line_list[cnt], marker=marker_list[cnt], markevery=20, linewidth=1)
+    ax_min.plot(x, curve_min, label=next(iter(algo_name)), linestyle=line_list[cnt], marker=marker_list[cnt], markevery=20, linewidth=1.5, markersize=8)
 
 # plot each task
 # if tasknum > 1:
@@ -983,13 +1117,15 @@ for key in extra_folder:
 # ax_min.set_ylabel('Accuracy', fontsize=20)
 # ax_min.set_title(f'Min Accuracy over {tasknum} Models', fontsize=20)
 # ax_min.tick_params(axis='both', which='major', labelsize=20)
-
-ax_avg.legend(frameon=False)
+# limit y between 0.2 to 0.8
+ax_avg.set_ylim([0.2, 0.8])
+ax_avg.legend(frameon=False, fontsize=14) # ncol=2
 # make label size larger
-ax_avg.set_xlabel('Num. Global Iterations')
-ax_avg.set_ylabel('Accuracy')
-ax_avg.set_title(f'Avg Accuracy over {tasknum} Models')
-#ax_avg.tick_params(axis='both', which='major', labelsize=20)
+ax_avg.set_xlabel('Num. Global Iterations', fontsize=20)
+ax_avg.set_ylabel('Accuracy', fontsize=20)
+#ax_avg.set_title(f'Avg Accuracy over {tasknum} Models', fontsize=20)
+ax_avg.set_title(f'Accuracy', fontsize=20)
+ax_avg.tick_params(axis='both', which='major', labelsize=20)
 # make the figure is tight
 
 ax_min.legend(frameon=False)
@@ -1006,3 +1142,32 @@ fig.savefig(finalPath+'/global_avg_acc.pdf', format="pdf", bbox_inches="tight")
 fig = ax_min.get_figure()
 fig.tight_layout()
 fig.savefig(finalPath+'/global_min_acc.pdf', format="pdf", bbox_inches="tight")
+
+
+# accuracy_levels from 0.2 to 0.8, linespace
+# accuracy_levels = np.linspace(0.2, 0.55, 1000)
+# gap = []
+# for level in accuracy_levels:
+# # find the first index that is greater than level
+#     GVR_round = 0
+#     SMVR_round = 0
+#     for i in range(len(curve_compare[0])): # GVR
+#         if curve_compare[0][i] > level:
+#             GVR_round = i
+#             break
+#     for i in range(len(curve_compare[0])): # SMVR
+#         if curve_compare[1][i] > level:
+#             SMVR_round = i
+#             break
+#     gap.append(SMVR_round - GVR_round)
+# print(gap)
+# # plot gap
+# fig_gap = plt.figure()
+# ax_gap = fig_gap.add_subplot(1, 1, 1)
+# ax_gap.plot(np.arange(150), curve_compare[0]-curve_compare[1])
+# ax_gap.set_xlabel('Accuracy Level')
+# ax_gap.set_ylabel('Round Gap')
+# fig = ax_gap.get_figure()
+# fig.tight_layout()
+# #fig.savefig(finalPath+'/round_gap.pdf', format="pdf", bbox_inches="tight")
+# plt.show()
