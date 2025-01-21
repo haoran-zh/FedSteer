@@ -972,6 +972,21 @@ def sampling_distribution(p_s_i, tasks_num, clients_process, client_task_ability
     return clients_task, p_dict, chosen_clients
 
 
+def generate_given_psi(givenProb, N, active_rate, rounds):
+    p_high = 1 + givenProb
+    p_low = 1
+    clients_num = N
+    active_num = int(N * active_rate)
+    # create distribution, half are p_high, half are p_low
+    p_all = [p_high for i in range(clients_num)]
+    p_all[clients_num // 2:] = [p_low for i in range(clients_num - clients_num // 2)]
+    # normalize to probabilities
+    p_all = np.array(p_all).reshape(1, -1)
+    p_all = p_all / np.sum(p_all) * active_num
+    psi = [p_all for _ in range(rounds)]
+
+    return psi
+
 def sample_unbalanced_distribution(clients_process, m, givenProb, task_num):
     # clients_process: order of clients, e.g., [0,1,2,3,4,5,6,7,8,9] (total 9 clients)
     # m: allowed communication (int)
