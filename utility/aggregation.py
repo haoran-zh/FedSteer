@@ -178,10 +178,14 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
 
 
         if args.ubwindow is True:
-            # read past probabilities, divide probability to ensure unbiasedness
-            psi_list_file = save_path + 'psi_OS.pkl'
-            with open(psi_list_file, "rb") as f:
-                psi = pickle.load(f)
+            if args.givenProb != 0.0:
+                # generate psi based on given probability
+                psi = optimal_sampling.generate_given_psi(args.givenProb, N, active_rate=args.C, rounds=total_rounds)  # we don't consider multiple processors here
+            else:
+                # read past probabilities, divide probability to ensure unbiasedness
+                psi_list_file = save_path + 'psi_OS.pkl'
+                with open(psi_list_file, "rb") as f:
+                    psi = pickle.load(f)
             # compute probability of being active at least once in the window
             p_active_once, num_clients_below_LB = compute_p_active_once(psi, args.window_size, args)
             # store num_clients_below_LB

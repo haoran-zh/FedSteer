@@ -311,7 +311,7 @@ if __name__=="__main__":
                       # normal methods, with closed-form solution, decay-approximation or optimal values.
                     if args.optimal_b is True:
                         optimal_b_array = optimal_sampling.get_optimal_b(all_tasks_gradients_list, old_local_updates,
-                                                                         task_number, num_clients)
+                                                                         task_number, num_clients, args)
                         optimal_b_list.append(optimal_b_array)
                     else:
                         optimal_b_array = decay_beta_record[round]

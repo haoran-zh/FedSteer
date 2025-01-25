@@ -35,6 +35,18 @@ def weight_product(weights_A, weights_B, epsilon=1e-7):
 
     return weight_prod
 
+
+def weight_product_lastLayer(weights_A, weights_B, epsilon=1e-7):
+    # Calculate weight_A * weight_B only for their last layer parameters
+    last_layer_name = list(weights_A.keys())[-1]
+    weight_prod = torch.sum(weights_A[last_layer_name] * weights_B[last_layer_name])
+
+    # Replace NaN with a small value and bound very small values
+    if torch.isnan(weight_prod) or torch.abs(weight_prod) < epsilon:
+        weight_prod = epsilon  # Set to a small non-zero value
+
+    return weight_prod
+
 def weight_norm(weights_A):
     # get gradient by subtracting weights_next_round from weights_this_round
     # Calculate weight_A * weight_B (inner product, return a scalar)
@@ -666,7 +678,7 @@ def aggregation_fair(loss_af_aggregation, loss_bf_aggregation):
 
 
 
-def get_optimal_b(new_updates, old_updates, tasknum, clientnum):
+def get_optimal_b(new_updates, old_updates, tasknum, clientnum, args):
     optimal_b_array = np.zeros((tasknum, clientnum))
     for task_index in range(tasknum):
         for client_index in range(clientnum):
@@ -675,7 +687,12 @@ def get_optimal_b(new_updates, old_updates, tasknum, clientnum):
                 optimal_b = 0
                 optimal_b_array[task_index][client_index] = optimal_b
             else:
-                optimal_b = weight_product(new_updates[task_index][client_index], old_updates[task_index][client_index]) / weight_product(old_updates[task_index][client_index], old_updates[task_index][client_index])
+                if args.lastLayer is True:
+                    optimal_b = weight_product_lastLayer(new_updates[task_index][client_index],
+                                               old_updates[task_index][client_index]) / weight_product_lastLayer(
+                        old_updates[task_index][client_index], old_updates[task_index][client_index])
+                else:
+                    optimal_b = weight_product(new_updates[task_index][client_index], old_updates[task_index][client_index]) / weight_product(old_updates[task_index][client_index], old_updates[task_index][client_index])
                 optimal_b_array[task_index][client_index] = optimal_b
     return optimal_b_array
 
