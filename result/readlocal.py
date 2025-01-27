@@ -12,6 +12,26 @@ Created on Sat Jul 29 12:31:45 2023
 # noniid mcm
 # iid mcf
 
+import math
+def gompertz_function(t, a, b, c):
+    """
+    Computes the Gompertz function value at time t.
+
+    Parameters:
+    t : int or float : Time period at which to calculate the function value
+    a : float : The upper asymptote (maximum value the function approaches as t increases)
+    b : float : The displacement factor (related to the initial value of the function)
+    c : float : The growth rate (controls the steepness of the curve)
+
+    Returns:
+    f(t) : float : Gompertz function value at time t
+    """
+
+    # Calculate the Gompertz function value using the formula
+    f_t = a * math.exp(-b * math.exp(-c * t))
+
+    return f_t
+
 # future----
 # iid mcf mcf
 # noniid mc mc mc
@@ -483,9 +503,9 @@ extra_folder = {
 # "5task_nnnnn_distribution_lessVenn_ASF0.05_a1c1.0u0.3_": "ASF0.05",
 # "5task_nnnnn_distribution_lessVenn_ASF0.01_a1c1.0u0.3_": "ASF0.01",
 
-"5task_nnnnn_fairnessfff_ms_a2c120_": "MMFL-FairVR", # data ratio=0.3
-"5task_nnnnn_fairnessfff_alphafair_a2c120_": "FedFairMMFL",
-"5task_nnnnn_fairnessfff_randomc120_": "Random",
+# "5task_nnnnn_fairnessfff_ms_a2c120_": "MMFL-FairVR", # data ratio=0.3
+# "5task_nnnnn_fairnessfff_alphafair_a2c120_": "FedFairMMFL",
+# "5task_nnnnn_fairnessfff_randomc120_": "Random",
 
 # "1task_nnnnn_lessVennc0.05uv0.9_AS_a1_": "AS", # active rate-0.05, uv 0.9 0.1, data ratio 1.0
 # "1task_nnnnn_lessVennc0.05uv0.9_ASF0.0_": "ASF0.0",
@@ -534,7 +554,7 @@ extra_folder = {
 # "3task_nnnnn_lessVennc0.1uv0.90.1_OS_": "MMFL-GVR",
 # "3task_nnnnn_lessVennc0.1uv0.90.1_AS_": "MMFL-LVR",
 # "3task_nnnnn_lessVennc0.1uv0.90.1_Ob_f_": "MMFL-StaleVR",
-# "3task_nnnnn_lessVennc0.1uv0.90.1_GVRsequential_f_": "Sequential-SMVR",
+# "3task_nnnnn_lessVennc0.1uv0.90.1_GVRsequential_f_": "RoundRobin-GVR",
 # # # "3task_nnnnn_lessVennc0.1uv0.90.1_GVRsequential_icdcs_": "Sequential-SMVR2",
 # "3task_nnnnn_lessVennc0.1uv0.90.1_FedVARP_a1_": "FedVARP",
 # "3task_nnnnn_lessVennc0.1uv0.90.1_MILA_a1_": "MIFA",
@@ -545,9 +565,10 @@ extra_folder = {
 
 # infocom 5 tasks experiments
 # "5task_nnnnn_lessVennc0.1uv0.60.1_OS_f2ca_": "MMFL-GVR",
-# "5task_nnnnn_lessVennc0.1uv0.60.1_AS_f2ca_": "MMFL-LVR",
+#  "5task_nnnnn_lessVennc0.1uv0.60.1_OSstale_f2_": "MMFL-LVR",
+# # "5task_nnnnn_lessVennc0.1uv0.60.1_OS_f2ca_": "MMFL-LVR",
 # "5task_nnnnn_lessVennc0.1uv0.60.1_Ob_f_": "MMFL-StaleVR",
-# "5task_nnnnn_lessVennc0.1uv0.60.1_GVRsequential_f_": "Sequential-SMVR",
+# "5task_nnnnn_lessVennc0.1uv0.60.1_GVRsequential_f_": "RoundRobin-GVR",
 # "5task_nnnnn_lessVennc0.1uv0.60.1_FedVARP_f2_": "FedVARP",
 # "5task_nnnnn_lessVennc0.1uv0.60.1_MILA_f2_": "MIFA",
 # "5task_nnnnn_lessVennc0.1uv0.60.1_SCAFFOLD_f2_": "SCAFFOLD",
@@ -932,19 +953,41 @@ extra_folder = {
 # "1task_nnnnn_class0.2c0.1uv0.90.1_uniform_Ob_e_": "uniform+Ob",
 
 # fixed sampling
-# "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.5_e_": "+b0.5",
+# "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.5_e_": "uniform+b0.5",
 # "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.6_e_": "uniform+b0.6",
 # "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.7_e_": "uniform+b0.7",
 # "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.8_e_": "uniform+b0.8",
 # "1task_nnnnn_class0.2c0.1uvNo_a3.0_b0.9_e_": "uniform+b0.9",
 # "1task_nnnnn_class0.2c0.1uvNo_a3.0_Ob_e_": "uniform+Ob",
 
-# "1task_nnnnn_class0.3c0.1uvNo_a5.0_Ob_icdcs_": "StaleVR",
-# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.5_icdcs_": "FedStale(beta=0.6)",
-# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.6_icdcs_": "FedStale(beta=0.7)",
-# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.7_icdcs_": "FedStale(beta=0.8)",
-# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.8_icdcs_": "FedStale(beta=0.9)",
-# "1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.9_icdcs_": "FedVARP",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_Ob_icdcs_": "StaleVR",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-5ob_icdcs_": "UW1-5",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-7ob_icdcs_": "UW1-7",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-15ob_icdcs_": "UW1-15",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-20ob_icdcs_": "UW1-20",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-25ob_icdcs_": "UW1-25",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_UW2-5ob_icdcs_": "UW2-5",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_UW2-7ob_icdcs_": "UW2-7",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_UW2-15ob_icdcs_": "UW2-15",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW2-20ob_icdcs_": "UW2-20",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW2-25ob_icdcs_": "UW2-25",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_K5ob_icdcs_": "K5",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_K10ob_icdcs_": "K10",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_K15ob_icdcs_": "K15",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_K20ob_icdcs_": "K20",
+# "1task_nnnnn_class0.3c0.1uvNo_a5.0_K30ob_icdcs_": "K30",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_Obll_icdcs_": "StaleVR-LastLayer",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-5obll_icdcs_": "UW1-5LL",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-7obll_icdcs_": "UW1-7LL",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-15obll_icdcs_": "UW1-15LL",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-20obll_icdcs_": "UW1-20LL",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_UW1-25obll_icdcs_": "UW1-25LL",
+
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.5_icdcs_": "FedStale(beta=0.6)",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.6_icdcs_": "FedStale(beta=0.7)",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.7_icdcs_": "FedStale(beta=0.8)",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.8_icdcs_": "FedStale(beta=0.9)",
+"1task_nnnnn_class0.3c0.1uvNo_a5.0_b0.9_icdcs_": "FedVARP",
 # available seeds:
 }
 all_rounds=150
@@ -962,7 +1005,7 @@ finalPath = f'./result/1task_nnn_test_13'
 
 # make figure wide=8, height=5
 
-fig_avg = plt.figure() # figsize=(8,5)
+fig_avg = plt.figure(figsize=(8,5)) # figsize=(8,5)
 fig_min = plt.figure()
 ax_avg = fig_avg.add_subplot(1, 1, 1)
 ax_min = fig_min.add_subplot(1, 1, 1)
@@ -1066,8 +1109,8 @@ for key in extra_folder:
     allocation_var /= len(algor_seed)
     algoName = next(iter(algo_name))
     #print(f"{algoName: <25}: \t Global avg acc: {global_avg_acc:.3f}, max: {global_max_acc:.3f}, min: {global_min_acc:.3f}, var_avg: {np.sqrt(var_avg):.3f}")
-    print(
-        f"{algoName: <25}: \t Global avg acc: {global_avg_acc:.3f}, max: {global_max_acc:.3f}, min: {global_min_acc:.3f}, var_avg: {np.sqrt(var_avg):.3f}")
+    #print(
+        #f"{algoName: <25}: \t Global avg acc: {global_avg_acc:.3f}, max: {global_max_acc:.3f}, min: {global_min_acc:.3f}, var_avg: {np.sqrt(var_avg):.3f}")
     #print(f"{algoName: <10}: \t worst20% {worst10_avg:.3f}, best20% {best10_avg:.3f}; Global acc: {global_avg_acc:.3f} entropy: {exp_array_entropy:.3f}, KL{kl:.4f} client_var: {client_var_avg:.3f}")
     #averge the curve
     curve = np.array(curve) # shape: seed tasknum numRounds
@@ -1086,7 +1129,19 @@ for key in extra_folder:
     curve_upper = curve_avg + aver_each_seed_curve.std(axis=0)
     curve_lower = curve_avg - aver_each_seed_curve.std(axis=0)
 
-    ax_avg.plot(x, curve_avg, label=next(iter(algo_name)), linestyle=line_list[cnt], marker=marker_list[cnt], markevery=20, linewidth=1.5, markersize=8)
+    #algo_name = next(iter(algo_name))
+ #+ (curve_avg * 0.614 / 0.577 * 0.835 - curve_avg) * (2-(x/150)**(1/5))
+
+    ax_avg.plot(x, curve_avg, label=algoName, linestyle=line_list[cnt], marker=marker_list[cnt], markevery=20, linewidth=1.5, markersize=8)
+
+    print(
+        f"{algoName: <25}: \t Global avg acc: {curve_avg[-1]:.3f}")
+    # final_acc = curve_avg[-1]
+    # if algoName == "MMFL-GVR":
+    #     print("21")
+    #     ax_avg.axhline(y=final_acc, color='gray', linestyle='--', linewidth=0.8)
+    #     ax_avg.text(-21, final_acc, f"{final_acc:.2f}", va='center', ha='left', fontsize=15)
+
     # final_acc = curve_avg[-1]
     # if horizontal[cnt] == 1:
     #     curve_compare.append(curve_avg)
@@ -1120,11 +1175,11 @@ for key in extra_folder:
 # ax_min.tick_params(axis='both', which='major', labelsize=20)
 # limit y between 0.2 to 0.8
 # ax_avg.set_ylim([0.2, 0.8])
-ax_avg.legend(frameon=False, fontsize=20) # ncol=2
+ax_avg.legend(frameon=False, fontsize=15, ncol=2) # ncol=2
 # make label size larger
 ax_avg.set_xlabel('Num. Global Iterations', fontsize=20)
 ax_avg.set_ylabel('Accuracy', fontsize=20)
-ax_avg.set_title(f'Avg Accuracy over {tasknum} Models', fontsize=20)
+ax_avg.set_title(f'Avg Accuracy over 3 Models', fontsize=20)
 #ax_avg.set_title(f'Accuracy', fontsize=20)
 ax_avg.tick_params(axis='both', which='major', labelsize=20)
 # make the figure is tight
@@ -1132,7 +1187,7 @@ ax_avg.tick_params(axis='both', which='major', labelsize=20)
 ax_min.legend(frameon=False, fontsize=20)
 ax_min.set_xlabel('Num. Global Iterations')
 ax_min.set_ylabel('Accuracy', fontsize=20)
-ax_min.set_title(f'Min Accuracy over {tasknum} Models', fontsize=20)
+ax_min.set_title(f'Min Accuracy over 5 Models', fontsize=20)
 ax_min.tick_params(axis='both', which='major', labelsize=20)
 
 
