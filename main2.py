@@ -157,6 +157,7 @@ if __name__=="__main__":
             localLossResults= np.zeros((len(task_type), num_clients, num_round))
             allocation_dict_list = []
             old_local_updates = []
+            old_local_updates_epoch1 = []
             optimal_b_list = []
             decay_tasks_list = []
             decay_beta_record = np.zeros((num_round+1, len(task_type), num_clients))
@@ -243,6 +244,13 @@ if __name__=="__main__":
                     for client_idx in range(num_clients):
                         old_local_updates[task_idx].append(optimal_sampling.zero_shapelike(global_models[task_idx].state_dict()))
 
+            # if lastLayer is True, similarly initialize old_local_updates_epoch1
+            if args.lastLayer is True:
+                old_local_updates_epoch1 = [[] for _ in range(task_number)]
+                for task_idx in range(len(task_type)):
+                    for client_idx in range(num_clients):
+                        old_local_updates_epoch1[task_idx].append(optimal_sampling.zero_shapelike(global_models[task_idx].state_dict()))
+
 
             optimal_b_array = np.zeros((len(task_type), num_clients))
             adjusted_old_local_updates = copy.deepcopy(old_local_updates)
@@ -301,7 +309,8 @@ if __name__=="__main__":
                             all_tasks_gradients_list = pseudo_all_tasks_gradients_list
 
                     else:
-                        all_tasks_gradients_list, tasks_local_training_acc, tasks_local_training_loss, all_weights_diff = training_all(
+                        all_tasks_gradients_list, tasks_local_training_acc, tasks_local_training_loss, \
+                            all_weights_diff, all_tasks_weights_list_epoch1 = training_all(
                                                                                             tasks_data_info=tasks_data_info, tasks_data_idx=tasks_data_idx,
                                                                                             global_models=global_models, chosen_clients=None,
                                                                                             task_type=task_type, clients_task=None,
@@ -310,7 +319,12 @@ if __name__=="__main__":
 
                       # normal methods, with closed-form solution, decay-approximation or optimal values.
                     if args.optimal_b is True:
-                        optimal_b_array = optimal_sampling.get_optimal_b(all_tasks_gradients_list, old_local_updates,
+                        if args.lastLayer is True:
+                            optimal_b_array = optimal_sampling.get_optimal_b(all_tasks_weights_list_epoch1,
+                                                                             old_local_updates_epoch1,
+                                                                             task_number, num_clients, args)
+                        else:
+                            optimal_b_array = optimal_sampling.get_optimal_b(all_tasks_gradients_list, old_local_updates,
                                                                          task_number, num_clients, args)
                         optimal_b_list.append(optimal_b_array)
                     else:
@@ -487,7 +501,7 @@ if __name__=="__main__":
                                                    local_data_num=dis[task_idx],
                                                    p_list=p_dict[task_idx], args=args, decay_beta=decay_beta_record[round, task_idx], chosen_clients=this_task_chosen_clients,
                                                    old_global_weights=adjusted_old_local_updates[task_idx], allocation_result=allocation_dict_list, task_index=task_idx,
-                                                    save_path='./result/'+folder_name+'/'))
+                                                    save_path='./result/'+folder_name+'/', allnew_gradients=all_tasks_gradients_list[task_idx]))
                             else:
                                 global_models[task_idx].load_state_dict(
                                 federated_prob(global_weights=global_models[task_idx], models_gradient_dict=this_task_gradients_list, local_data_num=dis[task_idx],
@@ -621,6 +635,8 @@ if __name__=="__main__":
                         task = clients_task[i]
                         cl = chosen_clients[i]
                         old_local_updates[task][cl] = copy.deepcopy(all_tasks_gradients_list[task][cl])
+                        if args.lastLayer is True:
+                            old_local_updates_epoch1[task][cl] = copy.deepcopy(all_tasks_weights_list_epoch1[task][cl])
 
 
                 TaskAllocCounter[:, round] = np.bincount(np.array(clients_task).astype(np.int64), minlength=len(task_type))

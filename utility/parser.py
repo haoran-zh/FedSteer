@@ -90,6 +90,7 @@ class ParserArgs(object):
         self.parser.add_argument("--givenProb", type=float, default=0.0, help="half client p=1+a, other are 1, then normalize")
         # lastLayer
         self.parser.add_argument("--lastLayer", action="store_true", help="use last layer gradient to compute beta")
+        self.parser.add_argument("--optimalV", action="store_true", help="obtain the optimal V matrix")
 
 
 

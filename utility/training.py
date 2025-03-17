@@ -169,6 +169,9 @@ def training(tasks_data_info, tasks_data_idx, global_models, chosen_clients, tas
 
 def training_all(tasks_data_info, tasks_data_idx, global_models, chosen_clients, task_type, clients_task, local_epochs,
              batch_size, classes_size, type_iid, device, args):
+    # args.lastLayer, use this to store the last layer gradient from the first epoch
+    lastLayer = args.lastLayer  # if lastLayer is True, need to store the last layer gradient from the first epoch
+    all_tasks_weights_list_epoch1 = []
     all_tasks_weights_list = []
     all_tasks_local_training_acc = []
     all_tasks_local_training_loss = []
@@ -180,6 +183,7 @@ def training_all(tasks_data_info, tasks_data_idx, global_models, chosen_clients,
 
     for tasks_index in range(len(task_type)): # all tasks and all clients need to be trained
         tasks_weights_list = []
+        tasks_weights_list_epoch1 = []
         tasks_local_training_acc = []
         tasks_local_training_loss = []
         weights_diff = []
@@ -244,6 +248,11 @@ def training_all(tasks_data_info, tasks_data_idx, global_models, chosen_clients,
                 local_train_accuracy = correct / total
                 local_train_loss = running_loss / total
 
+                if lastLayer is True and epoch == 0:
+                    norm, lr_gradients = optimal_sampling.get_gradient_norm(previous_local_state_dict,
+                                                                            local_model.state_dict(), learning_rate)
+                    tasks_weights_list_epoch1.append(lr_gradients.copy())
+
             tasks_local_training_acc.append(local_train_accuracy) # only save the last epoch's accuracy
             tasks_local_training_loss.append(local_train_loss)
             # Append local model weights to list
@@ -256,13 +265,14 @@ def training_all(tasks_data_info, tasks_data_idx, global_models, chosen_clients,
             tasks_weights_list.append(lr_gradients.copy()) # lr_gradient considers the learning rate
             # take a step once every global epoch
             # scheduler.step()
+        all_tasks_weights_list_epoch1.append(tasks_weights_list_epoch1)
         all_tasks_weights_list.append(tasks_weights_list)
         all_tasks_local_training_acc.append(tasks_local_training_acc)
         all_tasks_local_training_loss.append(tasks_local_training_loss)
         all_weights_diff.append(weights_diff)
         # all_xxx list is in shape: [task_index][client_index]
         # client_index is in the order of chosen_clients[0], chosen_clients[1], chosen_clients[2]...
-    return all_tasks_weights_list, all_tasks_local_training_acc, all_tasks_local_training_loss, all_weights_diff
+    return all_tasks_weights_list, all_tasks_local_training_acc, all_tasks_local_training_loss, all_weights_diff, all_tasks_weights_list_epoch1  # weights_diff is actually norm
 
 
 def get_server_controls(control_variate, dis):

@@ -3,6 +3,7 @@ import numpy as np
 import utility.optimal_sampling as optimal_sampling
 import copy
 import pickle
+from utility.optimal_sampling import weight_minus
 
 def federated(models_state_dict, local_data_nums, aggregation_mtd, numUsersSel):
 
@@ -144,8 +145,90 @@ def window_states_Krank(allocation_history, task_index, args):
     return clients_within_window
 
 
+def updateV(H, models_gradient_dict):
+    """
+    H: list of dictionaries representing q_i^t for each client i.
+    models_gradient_dict: list of dictionaries representing G_i^t for each client i.
 
-def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list, args, chosen_clients, old_global_weights, decay_beta, allocation_result, task_index, save_path):
+    Returns:
+      s: a numpy array of shape (N,N) with the optimal coefficients s_{ij}.
+      Q: a list of dictionaries, where Q[i] = sum_j s_{ij} * (flattened difference corresponding to H[j]-H[i])
+         (unflattened to have same structure as H[i]).
+    """
+
+    # helper function to flatten a dict of tensors into a 1d tensor.
+    # We sort the keys so that the order is deterministic.
+    def flatten_weights(weights):
+        return torch.cat([weights[k].reshape(-1) for k in sorted(weights.keys())])
+
+    # helper function to unflatten a flat tensor back into the dict shape given by template.
+    def unflatten_weights(flat_tensor, template):
+        new_weights = {}
+        pointer = 0
+        for k in sorted(template.keys()):
+            shape = template[k].shape
+            numel = template[k].numel()
+            new_weights[k] = flat_tensor[pointer:pointer + numel].view(shape)
+            pointer += numel
+        return new_weights
+
+    N = len(H)
+
+    # First, build V_list and r_list where each V_list[i] is a matrix (d x N) and each r_list[i] is a vector (d,)
+    V_list = []
+    r_list = []
+
+    # Determine the dimension by flattening one of the H dictionaries
+    d = flatten_weights(H[0]).shape[0]
+
+    for i in range(N):
+        # Compute r_i = flatten( G_i^t - H[i] ).
+        # We use the provided weight_minus function, assumed to work as:
+        #    weight_minus(A, B) returns a dict with (A[k]-B[k]) for each key k.
+        r_i = flatten_weights(weight_minus(models_gradient_dict[i], H[i]))
+        r_list.append(r_i)
+
+        # Build V_i: for each j, if j==i then a zero vector, else flatten( H[j]-H[i] )
+        V_i_cols = []
+        for j in range(N):
+            if i == j:
+                v_ij = torch.zeros(d)
+            else:
+                minus_result = weight_minus(H[j], H[i])
+                v_ij = flatten_weights(minus_result)
+            # Make it a column vector
+            V_i_cols.append(v_ij.unsqueeze(1))  # shape (d,1)
+        # Stack columns to form V_i (shape d x N)
+        V_i = torch.cat(V_i_cols, dim=1)
+        V_list.append(V_i)
+
+    # Now solve for s for each i and compute Q.
+    s = np.zeros((N, N))  # each row i is the coefficients s_i
+    Q = []  # Q[i] will be unflattened back to dict format
+    for i in range(N):
+        V_i = V_list[i]  # shape (d, N)
+        r_i = r_list[i]  # shape (d,)
+        # Compute the normal equations: A s_i = b, with A = V_i^T V_i and b = V_i^T r_i.
+        A = V_i.t() @ V_i  # shape (N, N)
+        b = V_i.t() @ r_i  # shape (N,)
+        # Solve for s_i; if A is not invertible, use a pseudo-inverse.
+        try:
+            s_i = torch.linalg.solve(A, b)
+        except RuntimeError:
+            s_i = torch.pinverse(A) @ b
+        # Store the coefficients
+        s[i, :] = s_i.detach().cpu().numpy()
+        # Compute Q[i] = V_i @ s_i, which is a flat vector of dimension d.
+        Q_i_flat = V_i @ s_i  # shape (d,)
+        # Unflatten Q_i back to the dictionary structure of H[i].
+        Q_i = unflatten_weights(Q_i_flat, H[i])
+        Q.append(Q_i)
+
+    return s, Q
+
+
+
+def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list, args, chosen_clients, old_global_weights, decay_beta, allocation_result, task_index, save_path, allnew_gradients):
     global_weights_dict = global_weights.state_dict()
     global_keys = list(global_weights_dict.keys())
     # Sum the state_dicts of all client models
@@ -294,6 +377,25 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                     h_i = old_global_weights[i]
                     for key in global_keys:
                         global_weights_dict[key] -= d_i * h_i[key]
+        elif args.optimalV is True:
+            s, Q = updateV(old_global_weights, allnew_gradients)
+
+            # record optimal s
+            s_file = save_path + 's.pkl'
+            optimal_sampling.append_to_pickle(s_file, s)
+
+            for i, gradient_dict in enumerate(models_gradient_dict):  # active clients
+                d_i = dis_s[chosen_clients[i]]
+                h_i = Q[chosen_clients[i]]
+                for key in global_keys:
+                    # if we use summation window, then should minus h_i * window_size
+                    global_weights_dict[key] -= (d_i / p_list[i]) * (gradient_dict[key] - h_i[key])
+            clients_num = len(dis_s)
+            for i in range(clients_num):
+                d_i = dis_s[i]
+                h_i = Q[i]
+                for key in global_keys:
+                    global_weights_dict[key] -= d_i * h_i[key]
 
         else: # sum for all clients
             for i, gradient_dict in enumerate(models_gradient_dict):  # active clients
