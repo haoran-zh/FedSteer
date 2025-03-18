@@ -3,7 +3,7 @@ import numpy as np
 import utility.optimal_sampling as optimal_sampling
 import copy
 import pickle
-from utility.optimal_sampling import weight_minus
+from utility.optimal_sampling import weight_minus, weight_add
 
 def federated(models_state_dict, local_data_nums, aggregation_mtd, numUsersSel):
 
@@ -129,6 +129,17 @@ def window_states(allocation_history, task_index, args):
         clients_within_window = dict(sorted(clients_within_window.items(), key=lambda item: item[1])[:window_max])
     return clients_within_window
 
+
+def window_states_optimalV(allocation_history, task_index, args, window_size):
+    # use this function at the start, create a list to include all clients within the bound
+    clients_within_window = {}
+    clients_num = args.num_clients
+    for i in range(clients_num):
+        delta_t = optimal_sampling.find_recent_allocation(allocation_history, task_index, i)
+        if delta_t <= window_size:
+            clients_within_window[i] = delta_t
+    return clients_within_window
+
 def window_states_Krank(allocation_history, task_index, args):
     # use this function at the start, create a list to include all clients within the bound
     # if Krank is True, then window_max (K) means the most recent K stale updates
@@ -145,7 +156,7 @@ def window_states_Krank(allocation_history, task_index, args):
     return clients_within_window
 
 
-def updateV(H, models_gradient_dict):
+def updateV(H, models_gradient_dict, clients_within):
     """
     H: list of dictionaries representing q_i^t for each client i.
     models_gradient_dict: list of dictionaries representing G_i^t for each client i.
@@ -172,14 +183,41 @@ def updateV(H, models_gradient_dict):
             pointer += numel
         return new_weights
 
+    def safe_solve(A, b, epsilon=1e-6):
+        try:
+            # Try solving normally
+            return torch.linalg.solve(A, b)
+        except RuntimeError:
+            # Check if A is singular
+            if torch.linalg.det(A).abs() < epsilon:  # Matrix is singular or ill-conditioned
+                A_reg = A + epsilon * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
+                try:
+                    return torch.linalg.solve(A_reg, b)  # Try again with regularization
+                except RuntimeError:
+                    pass  # If it still fails, move to least squares
+
+            # Least squares solution as fallback
+            try:
+                return torch.linalg.lstsq(A, b).solution
+            except RuntimeError:
+                pass  # If lstsq fails, move to pseudo-inverse
+
+            # Last resort: pseudo-inverse (safer than solve)
+            return torch.linalg.pinv(A) @ b
+
+    #clients_within = list(clients_within.keys())
+    clients_within = [i for i in range(40)]  # include all clients
     N = len(H)
+
 
     # First, build V_list and r_list where each V_list[i] is a matrix (d x N) and each r_list[i] is a vector (d,)
     V_list = []
     r_list = []
 
     # Determine the dimension by flattening one of the H dictionaries
-    d = flatten_weights(H[0]).shape[0]
+    H_reduced = [H[client] for client in clients_within]
+    d = flatten_weights(H_reduced[0]).shape[0]
+    N_reduced = len(clients_within)
 
     for i in range(N):
         # Compute r_i = flatten( G_i^t - H[i] ).
@@ -190,12 +228,14 @@ def updateV(H, models_gradient_dict):
 
         # Build V_i: for each j, if j==i then a zero vector, else flatten( H[j]-H[i] )
         V_i_cols = []
-        for j in range(N):
+        for j in clients_within:
             if i == j:
                 v_ij = torch.zeros(d)
             else:
                 minus_result = weight_minus(H[j], H[i])
                 v_ij = flatten_weights(minus_result)
+                # rescale it to 1/N_reduced
+                v_ij = v_ij / N_reduced
             # Make it a column vector
             V_i_cols.append(v_ij.unsqueeze(1))  # shape (d,1)
         # Stack columns to form V_i (shape d x N)
@@ -203,7 +243,7 @@ def updateV(H, models_gradient_dict):
         V_list.append(V_i)
 
     # Now solve for s for each i and compute Q.
-    s = np.zeros((N, N))  # each row i is the coefficients s_i
+    s = np.zeros((N, N_reduced))  # each row i is the coefficients s_i
     Q = []  # Q[i] will be unflattened back to dict format
     for i in range(N):
         V_i = V_list[i]  # shape (d, N)
@@ -212,17 +252,17 @@ def updateV(H, models_gradient_dict):
         A = V_i.t() @ V_i  # shape (N, N)
         b = V_i.t() @ r_i  # shape (N,)
         # Solve for s_i; if A is not invertible, use a pseudo-inverse.
-        try:
-            s_i = torch.linalg.solve(A, b)
-        except RuntimeError:
-            s_i = torch.pinverse(A) @ b
+        s_i = safe_solve(A, b)
         # Store the coefficients
         s[i, :] = s_i.detach().cpu().numpy()
         # Compute Q[i] = V_i @ s_i, which is a flat vector of dimension d.
-        Q_i_flat = V_i @ s_i  # shape (d,)
+        Q_i_flat = V_i @ s_i  # shape (d,), the result of sV
         # Unflatten Q_i back to the dictionary structure of H[i].
         Q_i = unflatten_weights(Q_i_flat, H[i])
-        Q.append(Q_i)
+        # adjust to the form used in aggregation
+        # Q_new = Q_i + H[i]
+        Q_update = weight_add(Q_i, H[i])
+        Q.append(Q_update)
 
     return s, Q
 
@@ -378,7 +418,9 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                     for key in global_keys:
                         global_weights_dict[key] -= d_i * h_i[key]
         elif args.optimalV is True:
-            s, Q = updateV(old_global_weights, allnew_gradients)
+
+            clients_within = window_states_optimalV(allocation_result, task_index, args, window_size=10)
+            s, Q = updateV(old_global_weights, allnew_gradients, clients_within)
 
             # record optimal s
             s_file = save_path + 's.pkl'

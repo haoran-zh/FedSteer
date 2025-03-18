@@ -25,6 +25,13 @@ def weight_minus(weights_A, weights_B):
     return weight_diff
 
 
+def weight_add(weights_A, weights_B):
+    # get gradient by subtracting weights_next_round from weights_this_round
+    weight_diff = {name: (weights_A[name] + weights_B[name]).cpu() for name in weights_A}
+    # Calculate the L2 norm of the weight differences
+    return weight_diff
+
+
 def weight_product(weights_A, weights_B, epsilon=1e-7):
     # Calculate weight_A * weight_B (inner product, return a scalar)
     weight_prod = sum(torch.sum(weights_A[name] * weights_B[name]) for name in weights_A)
