@@ -209,6 +209,14 @@ if __name__=="__main__":
                     elif type_iid[task_idx] == 'noniid':
                         local_data_num.append(len(tasks_data_idx[task_idx][0][client_idx]))
                 all_data_num.append(local_data_num)
+
+            # record data distribution, client labels
+            for task_idx in range(len(task_type)):
+                if type_iid[task_idx] == 'noniid':
+                    for client_idx in range(num_clients):
+                        distribution_file = './result/' + folder_name + '/' + f'client_labels_{task_idx}.pkl'
+                        optimal_sampling.append_to_pickle(distribution_file, tasks_data_idx[task_idx][0][client_idx])
+                    print('distribution saved')
             # compute dis
             all_data_array = np.array(all_data_num)
             # filter out the clients that can not handle the task
