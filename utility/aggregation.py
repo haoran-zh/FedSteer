@@ -268,7 +268,7 @@ def updateV(H, models_gradient_dict, clients_within):
 
 
 
-def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list, args, chosen_clients, old_global_weights, decay_beta, allocation_result, task_index, save_path, allnew_gradients):
+def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list, args, chosen_clients, old_global_weights, old_global_weights_previous, decay_beta, allocation_result, task_index, save_path, allnew_gradients):
     global_weights_dict = global_weights.state_dict()
     global_keys = list(global_weights_dict.keys())
     # Sum the state_dicts of all client models
@@ -420,7 +420,10 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
         elif args.optimalV is True:
 
             clients_within = window_states_optimalV(allocation_result, task_index, args, window_size=10)
-            s, Q = updateV(old_global_weights, allnew_gradients, clients_within)
+            if args.effV is True:
+                s, Q = updateV(old_global_weights_previous, old_global_weights, clients_within)
+            else:
+                s, Q = updateV(old_global_weights, allnew_gradients, clients_within)
 
             # record optimal s
             s_file = save_path + 's.pkl'

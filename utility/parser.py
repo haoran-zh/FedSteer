@@ -91,6 +91,8 @@ class ParserArgs(object):
         # lastLayer
         self.parser.add_argument("--lastLayer", action="store_true", help="use last layer gradient to compute beta")
         self.parser.add_argument("--optimalV", action="store_true", help="obtain the optimal V matrix")
+        # efficient V
+        self.parser.add_argument("--effV", action="store_true", help="efficient V, without additional computation")
 
 
 

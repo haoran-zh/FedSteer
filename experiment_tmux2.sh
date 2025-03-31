@@ -75,8 +75,17 @@ for uv in "${unbalance_value[@]}"; do
 # approximate optimal with partial information, linear decay
 # python main2.py --powerfulCNN --approximation --givenProb 5.0 --skipOS --stale --venn_list 0.9 0.1 0.0 --freshness --noextra_com --adjustoldVR --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_Obapprox_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
 
+
+# efficent V and r
+python main2.py --powerfulCNN --optimalV --effV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV3_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+
+
+
 # optimal V and r
-python main2.py --powerfulCNN --optimalV --givenProb 5.0 --skipOS --stale --venn_list 0.9 0.1 0.0 --freshness --noextra_com --adjustoldVR --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV2jongik_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+python main2.py --powerfulCNN --optimalV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV2_wo_b_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+
+
+
 ## given p, optimal beta
 #python main2.py --powerfulCNN --givenProb 5.0 --skipOS --stale --optimal_b --stale_b0 1.0 --stale_b 1.0 --freshness --venn_list 0.9 0.1 0.0 --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_Objongik_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
 

@@ -157,6 +157,7 @@ if __name__=="__main__":
             localLossResults= np.zeros((len(task_type), num_clients, num_round))
             allocation_dict_list = []
             old_local_updates = []
+            old_local_updates_previous = []
             old_local_updates_epoch1 = []
             optimal_b_list = []
             decay_tasks_list = []
@@ -251,6 +252,14 @@ if __name__=="__main__":
                 for task_idx in range(len(task_type)):
                     for client_idx in range(num_clients):
                         old_local_updates[task_idx].append(optimal_sampling.zero_shapelike(global_models[task_idx].state_dict()))
+
+
+            old_local_updates_previous = [[] for _ in range(task_number)]
+            for task_idx in range(len(task_type)):
+                for client_idx in range(num_clients):
+                    old_local_updates_previous[task_idx].append(
+                        optimal_sampling.zero_shapelike(global_models[task_idx].state_dict()))
+
 
             # if lastLayer is True, similarly initialize old_local_updates_epoch1
             if args.lastLayer is True:
@@ -508,7 +517,7 @@ if __name__=="__main__":
                                                    models_gradient_dict=this_task_gradients_list,
                                                    local_data_num=dis[task_idx],
                                                    p_list=p_dict[task_idx], args=args, decay_beta=decay_beta_record[round, task_idx], chosen_clients=this_task_chosen_clients,
-                                                   old_global_weights=adjusted_old_local_updates[task_idx], allocation_result=allocation_dict_list, task_index=task_idx,
+                                                   old_global_weights=adjusted_old_local_updates[task_idx], old_global_weights_previous=old_local_updates_previous[task_idx], allocation_result=allocation_dict_list, task_index=task_idx,
                                                     save_path='./result/'+folder_name+'/', allnew_gradients=all_tasks_gradients_list[task_idx]))
                             else:
                                 global_models[task_idx].load_state_dict(
@@ -626,7 +635,7 @@ if __name__=="__main__":
                         b0 = args.stale_b0
                         b_tasks = [args.stale_b for _ in range(task_number)]
                         decay_tasks_list.append(b_tasks)
-                        # let everything decay in the next round
+
                         for task in range(task_number):  # record decayed beta
                             decay_beta_record[round + 1, task, :] = decay_beta_record[round, task, :]
                         # initialize new updates
@@ -642,7 +651,12 @@ if __name__=="__main__":
                     for i in range(len(chosen_clients)):
                         task = clients_task[i]
                         cl = chosen_clients[i]
-                        old_local_updates[task][cl] = copy.deepcopy(all_tasks_gradients_list[task][cl])
+
+                        if args.effV is True:
+                            old_local_updates_previous[task][cl] = copy.deepcopy(old_local_updates[task][cl])
+                            old_local_updates[task][cl] = copy.deepcopy(all_tasks_gradients_list[task][cl])
+                        else:
+                            old_local_updates[task][cl] = copy.deepcopy(all_tasks_gradients_list[task][cl])
                         if args.lastLayer is True:
                             old_local_updates_epoch1[task][cl] = copy.deepcopy(all_tasks_weights_list_epoch1[task][cl])
 
