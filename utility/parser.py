@@ -93,8 +93,10 @@ class ParserArgs(object):
         self.parser.add_argument("--optimalV", action="store_true", help="obtain the optimal V matrix")
         # efficient V
         self.parser.add_argument("--effV", action="store_true", help="efficient V, without additional computation")
-
-
+        # force_range, let s be in the range of [0,1]
+        self.parser.add_argument("--force_range", action="store_true", help="let s be in the range of [0,1]")
+        # V_direct, no difference of two gradients
+        self.parser.add_argument("--V_direct", action="store_true", help="no difference of two gradients")
 
     def get_args(self):
         args = self.parser.parse_args()

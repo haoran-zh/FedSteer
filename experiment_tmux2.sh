@@ -77,14 +77,27 @@ for uv in "${unbalance_value[@]}"; do
 
 
 # efficent V and r
-python main2.py --powerfulCNN --optimalV --effV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV3_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
-
-
-
+#python main2.py --powerfulCNN --optimalV --effV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV3_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
 # optimal V and r
-python main2.py --powerfulCNN --optimalV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV2_wo_b_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+#python main2.py --powerfulCNN --optimalV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV2_wo_b_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+
+# force range bwteen 0.0 to 1.0
+# efficent V and r
+#python main2.py --force_range --powerfulCNN --optimalV --effV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OVeff_range_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+## optimal V and r
+#python main2.py --force_range --powerfulCNN --optimalV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV_range_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
 
 
+# direct method without difference
+# efficent V and r
+python main2.py --V_direct --powerfulCNN --optimalV --effV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OVeff_direct_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+# optimal V and r
+python main2.py --V_direct --powerfulCNN --optimalV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV_direct_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+
+
+# full participation and random
+# python main2.py --powerfulCNN --givenProb 5.0 --skipOS --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_random_$sd --optimal_sampling --alpha_loss --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+#python main2.py --powerfulCNN --L 1 --client_cpu 1.0 0 0 --fullparticipation --venn_list 1.0 0.0 0.0 --fairness notfair --data_ratio $d --unbalance $uv 0.1 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_full_$sd --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type random --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
 
 ## given p, optimal beta
 #python main2.py --powerfulCNN --givenProb 5.0 --skipOS --stale --optimal_b --stale_b0 1.0 --stale_b 1.0 --freshness --venn_list 0.9 0.1 0.0 --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_Objongik_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
