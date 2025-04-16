@@ -156,7 +156,7 @@ def window_states_Krank(allocation_history, task_index, args):
     return clients_within_window
 
 
-def updateV(H, models_gradient_dict, clients_within):
+def updateV(H, models_gradient_dict, clients_within, args):
     """
     H: list of dictionaries representing q_i^t for each client i.
     models_gradient_dict: list of dictionaries representing G_i^t for each client i.
@@ -219,6 +219,8 @@ def updateV(H, models_gradient_dict, clients_within):
     d = flatten_weights(H_reduced[0]).shape[0]
     N_reduced = len(clients_within)
 
+    force_range = args.force_range
+
     for i in range(N):
         # Compute r_i = flatten( G_i^t - H[i] ).
         # We use the provided weight_minus function, assumed to work as:
@@ -256,12 +258,123 @@ def updateV(H, models_gradient_dict, clients_within):
         # Store the coefficients
         s[i, :] = s_i.detach().cpu().numpy()
         # Compute Q[i] = V_i @ s_i, which is a flat vector of dimension d.
+        if force_range:
+            s_i = np.clip(s_i, 0.0, 1.0)
         Q_i_flat = V_i @ s_i  # shape (d,), the result of sV
         # Unflatten Q_i back to the dictionary structure of H[i].
         Q_i = unflatten_weights(Q_i_flat, H[i])
         # adjust to the form used in aggregation
         # Q_new = Q_i + H[i]
-        Q_update = weight_add(Q_i, H[i])
+        Q_update = weight_add(Q_i, H[i])  # make sure it approximates the Gradients
+        Q.append(Q_update)
+
+    return s, Q
+
+
+def updateV_direct(H, models_gradient_dict, clients_within, args):
+    """
+    H: list of dictionaries representing q_i^t for each client i.
+    models_gradient_dict: list of dictionaries representing G_i^t for each client i.
+
+    Returns:
+      s: a numpy array of shape (N,N) with the optimal coefficients s_{ij}.
+      Q: a list of dictionaries, where Q[i] = sum_j s_{ij} * (flattened difference corresponding to H[j]-H[i])
+         (unflattened to have same structure as H[i]).
+    """
+
+    # helper function to flatten a dict of tensors into a 1d tensor.
+    # We sort the keys so that the order is deterministic.
+    def flatten_weights(weights):
+        return torch.cat([weights[k].reshape(-1) for k in sorted(weights.keys())])
+
+    # helper function to unflatten a flat tensor back into the dict shape given by template.
+    def unflatten_weights(flat_tensor, template):
+        new_weights = {}
+        pointer = 0
+        for k in sorted(template.keys()):
+            shape = template[k].shape
+            numel = template[k].numel()
+            new_weights[k] = flat_tensor[pointer:pointer + numel].view(shape)
+            pointer += numel
+        return new_weights
+
+    def safe_solve(A, b, epsilon=1e-6):
+        try:
+            # Try solving normally
+            return torch.linalg.solve(A, b)
+        except RuntimeError:
+            # Check if A is singular
+            if torch.linalg.det(A).abs() < epsilon:  # Matrix is singular or ill-conditioned
+                A_reg = A + epsilon * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
+                try:
+                    return torch.linalg.solve(A_reg, b)  # Try again with regularization
+                except RuntimeError:
+                    pass  # If it still fails, move to least squares
+
+            # Least squares solution as fallback
+            try:
+                return torch.linalg.lstsq(A, b).solution
+            except RuntimeError:
+                pass  # If lstsq fails, move to pseudo-inverse
+
+            # Last resort: pseudo-inverse (safer than solve)
+            return torch.linalg.pinv(A) @ b
+
+    #clients_within = list(clients_within.keys())
+    clients_within = [i for i in range(40)]  # include all clients
+    N = len(H)
+
+
+    # First, build V_list and r_list where each V_list[i] is a matrix (d x N) and each r_list[i] is a vector (d,)
+    V_list = []  # Q actually, stale
+    r_list = []  # new gradient
+
+    # Determine the dimension by flattening one of the H dictionaries
+    H_reduced = [H[client] for client in clients_within]
+    d = flatten_weights(H_reduced[0]).shape[0]
+    N_reduced = len(clients_within)
+
+    force_range = args.force_range
+
+    for i in range(N):
+        # Compute r_i = flatten( G_i^t - H[i] ).
+        # We use the provided weight_minus function, assumed to work as:
+        #    weight_minus(A, B) returns a dict with (A[k]-B[k]) for each key k.
+        r_i = flatten_weights(models_gradient_dict[i])
+        r_list.append(r_i)
+
+        # Build V_i: for each j, if j==i then a zero vector, else flatten( H[j]-H[i] )
+        V_i_cols = []
+        for j in clients_within:
+            v_ij = flatten_weights(H[j])
+            # rescale it to 1/N_reduced
+            v_ij = v_ij / N_reduced
+            # Make it a column vector
+            V_i_cols.append(v_ij.unsqueeze(1))  # shape (d,1)
+        # Stack columns to form V_i (shape d x N)
+        V_i = torch.cat(V_i_cols, dim=1)
+        V_list.append(V_i)
+
+    # Now solve for s for each i and compute Q.
+    s = np.zeros((N, N_reduced))  # each row i is the coefficients s_i
+    Q = []  # Q[i] will be unflattened back to dict format
+    for i in range(N):
+        V_i = V_list[i]  # shape (d, N)  V_i is the same as Q_i, the stale gradients
+        r_i = r_list[i]  # shape (d,)  r_i is the new gradients
+        # Compute the normal equations: A s_i = b, with A = V_i^T V_i and b = V_i^T r_i.
+        A = V_i.t() @ V_i  # shape (N, N)
+        b = V_i.t() @ r_i  # shape (N,)
+        # Solve for s_i; if A is not invertible, use a pseudo-inverse.
+        s_i = safe_solve(A, b)
+        # Store the coefficients
+        s[i, :] = s_i.detach().cpu().numpy()
+        # Compute Q[i] = V_i @ s_i, which is a flat vector of dimension d.
+        if force_range:
+            s_i = np.clip(s_i, 0.0, 1.0)
+        Q_i_flat = V_i @ s_i  # shape (d,), the result of sV
+        # Unflatten Q_i back to the dictionary structure of H[i].
+        Q_i = unflatten_weights(Q_i_flat, H[i])
+        Q_update = Q_i
         Q.append(Q_update)
 
     return s, Q
@@ -421,9 +534,9 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
 
             clients_within = window_states_optimalV(allocation_result, task_index, args, window_size=10)
             if args.effV is True:
-                s, Q = updateV(old_global_weights_previous, old_global_weights, clients_within)
+                s, Q = updateV(old_global_weights_previous, old_global_weights, clients_within, args)
             else:
-                s, Q = updateV(old_global_weights, allnew_gradients, clients_within)
+                s, Q = updateV(old_global_weights, allnew_gradients, clients_within, args)
 
             # record optimal s
             s_file = save_path + 's.pkl'
@@ -433,7 +546,6 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                 d_i = dis_s[chosen_clients[i]]
                 h_i = Q[chosen_clients[i]]
                 for key in global_keys:
-                    # if we use summation window, then should minus h_i * window_size
                     global_weights_dict[key] -= (d_i / p_list[i]) * (gradient_dict[key] - h_i[key])
             clients_num = len(dis_s)
             for i in range(clients_num):
@@ -441,6 +553,29 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                 h_i = Q[i]
                 for key in global_keys:
                     global_weights_dict[key] -= d_i * h_i[key]
+        elif args.V_direct is True:
+            clients_within = window_states_optimalV(allocation_result, task_index, args, window_size=10)
+            if args.effV is True:
+                s, Q = updateV_direct(old_global_weights_previous, old_global_weights, clients_within, args)
+            else:
+                s, Q = updateV_direct(old_global_weights, allnew_gradients, clients_within, args)
+
+            # record optimal s
+            s_file = save_path + 's.pkl'
+            optimal_sampling.append_to_pickle(s_file, s)
+
+            for i, gradient_dict in enumerate(models_gradient_dict):  # active clients
+                d_i = dis_s[chosen_clients[i]]
+                h_i = Q[chosen_clients[i]]
+                for key in global_keys:
+                    global_weights_dict[key] -= (d_i / p_list[i]) * (gradient_dict[key] - h_i[key])
+            clients_num = len(dis_s)
+            for i in range(clients_num):
+                d_i = dis_s[i]
+                h_i = Q[i]
+                for key in global_keys:
+                    global_weights_dict[key] -= d_i * h_i[key]
+
 
         else: # sum for all clients
             for i, gradient_dict in enumerate(models_gradient_dict):  # active clients

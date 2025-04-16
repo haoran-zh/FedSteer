@@ -90,9 +90,9 @@ for uv in "${unbalance_value[@]}"; do
 
 # direct method without difference
 # efficent V and r
-python main2.py --V_direct --powerfulCNN --optimalV --effV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OVeff_direct_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+python main2.py --V_direct --powerfulCNN --effV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OVeff_direct_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
 # optimal V and r
-python main2.py --V_direct --powerfulCNN --optimalV --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV_direct_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
+python main2.py --V_direct --powerfulCNN --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes class"$class_ratio"c"$c"uvNo_a5.0_OV_direct_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
 
 
 # full participation and random
