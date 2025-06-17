@@ -97,6 +97,14 @@ class ParserArgs(object):
         self.parser.add_argument("--force_range", action="store_true", help="let s be in the range of [0,1]")
         # V_direct, no difference of two gradients
         self.parser.add_argument("--V_direct", action="store_true", help="no difference of two gradients")
+        # randomK, select K clients randomly to do the linear combination
+        self.parser.add_argument("--randomK", type=int, default=0, help="select K clients randomly to do the linear combination")
+        # randomKglobal
+        self.parser.add_argument("--randomKglobal", type=int, default=0, help="select K clients globally to do the linear combination")
+        # create a new name for
+        #self.parser.add_argument("--clients_within_global", nargs='*', type=int, default=[0],
+                                 #help="list of clients within")
+
 
     def get_args(self):
         args = self.parser.parse_args()

@@ -292,7 +292,9 @@ if __name__=="__main__":
                     localLossResults[:, :, round] = localLoss
                 else:
                     if args.givenProb != 0.0:
-                        chosen_clients, clients_task, p_dict = optimal_sampling.sample_unbalanced_distribution(clients_process, int(allowed_communication), args.givenProb, task_number)
+                        chosen_clients, clients_task, p_dict, p_all = optimal_sampling.sample_unbalanced_distribution(clients_process, int(allowed_communication), args.givenProb, task_number)
+                        # include p_all to args.p_all
+                        args.p_all = p_all
                     else:
                         chosen_clients = random.sample(clients_process, int(allowed_communication))
                         # allocate task based on venn matrix

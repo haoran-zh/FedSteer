@@ -184,29 +184,10 @@ def updateV(H, models_gradient_dict, clients_within, args):
         return new_weights
 
     def safe_solve(A, b, epsilon=1e-6):
-        try:
-            # Try solving normally
-            return torch.linalg.solve(A, b)
-        except RuntimeError:
-            # Check if A is singular
-            if torch.linalg.det(A).abs() < epsilon:  # Matrix is singular or ill-conditioned
-                A_reg = A + epsilon * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
-                try:
-                    return torch.linalg.solve(A_reg, b)  # Try again with regularization
-                except RuntimeError:
-                    pass  # If it still fails, move to least squares
-
-            # Least squares solution as fallback
-            try:
-                return torch.linalg.lstsq(A, b).solution
-            except RuntimeError:
-                pass  # If lstsq fails, move to pseudo-inverse
-
-            # Last resort: pseudo-inverse (safer than solve)
             return torch.linalg.pinv(A) @ b
 
     #clients_within = list(clients_within.keys())
-    clients_within = [i for i in range(40)]  # include all clients
+    # clients_within = [i for i in range(40)]  # include all clients
     N = len(H)
 
 
@@ -270,6 +251,25 @@ def updateV(H, models_gradient_dict, clients_within, args):
 
     return s, Q
 
+def get_minus_norm_square(weights_A, weights_B):
+    # get gradient by subtracting weights_next_round from weights_this_round
+    weight_diff = {name: (weights_A[name] - weights_B[name]).cpu() for name in weights_A}
+    # Calculate the L2 norm of the weight differences
+    # bound in case appear nan
+    norm = sum(torch.norm(diff, p=2) ** 2 for diff in weight_diff.values())
+    norm.item()
+    if torch.isnan(norm):
+        norm = torch.tensor(0.0)
+    return norm.item()
+
+
+def compute_variance_direct(G, di, p_all, stale_adjusted):
+    client_num = len(stale_adjusted)
+    var = 0.0
+    for i in range(client_num):
+        var += di[i]**2 / p_all[i] * get_minus_norm_square(G[i], stale_adjusted[i])
+    return var
+
 
 def updateV_direct(H, models_gradient_dict, clients_within, args):
     """
@@ -299,29 +299,10 @@ def updateV_direct(H, models_gradient_dict, clients_within, args):
         return new_weights
 
     def safe_solve(A, b, epsilon=1e-6):
-        try:
-            # Try solving normally
-            return torch.linalg.solve(A, b)
-        except RuntimeError:
-            # Check if A is singular
-            if torch.linalg.det(A).abs() < epsilon:  # Matrix is singular or ill-conditioned
-                A_reg = A + epsilon * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
-                try:
-                    return torch.linalg.solve(A_reg, b)  # Try again with regularization
-                except RuntimeError:
-                    pass  # If it still fails, move to least squares
+        return torch.linalg.pinv(A) @ b
 
-            # Least squares solution as fallback
-            try:
-                return torch.linalg.lstsq(A, b).solution
-            except RuntimeError:
-                pass  # If lstsq fails, move to pseudo-inverse
-
-            # Last resort: pseudo-inverse (safer than solve)
-            return torch.linalg.pinv(A) @ b
-
-    #clients_within = list(clients_within.keys())
-    clients_within = [i for i in range(40)]  # include all clients
+    # clients_within = list(clients_within.keys())
+    # clients_within = [i for i in range(40)]  # include all clients
     N = len(H)
 
 
@@ -531,8 +512,27 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                     for key in global_keys:
                         global_weights_dict[key] -= d_i * h_i[key]
         elif args.optimalV is True:
-
-            clients_within = window_states_optimalV(allocation_result, task_index, args, window_size=10)
+            if args.randomK > 0:
+                client_num = args.num_clients
+                randomK = args.randomK
+                # select randomK clients out of C
+                randomK_clients = np.random.choice(client_num, randomK, replace=False)
+                clients_within = randomK_clients
+            elif args.randomKglobal > 0:
+                # use clients with similar distribution
+                # if first round, decide random, else, use previous random
+                if total_rounds < 2:
+                    client_num = args.num_clients
+                    randomK = args.randomKglobal
+                    # select randomK clients out of C
+                    randomK_clients = np.random.choice(client_num, randomK, replace=False)
+                    clients_within = randomK_clients
+                    args.clients_within_global = clients_within
+                else:
+                    clients_within = args.clients_within_global
+            else:
+                client_num = args.C
+                clients_within = [i for i in range(client_num)]
             if args.effV is True:
                 s, Q = updateV(old_global_weights_previous, old_global_weights, clients_within, args)
             else:
@@ -541,6 +541,11 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
             # record optimal s
             s_file = save_path + 's.pkl'
             optimal_sampling.append_to_pickle(s_file, s)
+
+            # record the variance values
+            var = compute_variance_direct(G=allnew_gradients, di=dis_s, p_all=args.p_all, stale_adjusted=Q)
+            var_file = save_path + 'var.pkl'
+            optimal_sampling.append_to_pickle(var_file, var)
 
             for i, gradient_dict in enumerate(models_gradient_dict):  # active clients
                 d_i = dis_s[chosen_clients[i]]
@@ -554,7 +559,31 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                 for key in global_keys:
                     global_weights_dict[key] -= d_i * h_i[key]
         elif args.V_direct is True:
-            clients_within = window_states_optimalV(allocation_result, task_index, args, window_size=10)
+            # random sample k clients as the base
+            if args.randomK > 0:
+                client_num = args.num_clients
+                randomK = args.randomK
+                # select randomK clients out of C
+                randomK_clients = np.random.choice(client_num, randomK, replace=False)
+                clients_within = randomK_clients
+                args.clients_within_global = randomK_clients
+            elif args.randomKglobal > 0:
+                # use clients with similar distribution
+                # if first round, decide random, else, use previous random
+                if total_rounds < 2:
+                    client_num = args.num_clients
+                    randomK = args.randomKglobal
+                    # select randomK clients out of C
+                    randomK_clients = np.random.choice(client_num, randomK, replace=False)
+                    clients_within = randomK_clients
+                    args.clients_within_global = clients_within
+                else:
+                    # use previous random clients
+                    clients_within = args.clients_within_global
+            else:
+                client_num = args.C
+                clients_within = [i for i in range(client_num)]
+
             if args.effV is True:
                 s, Q = updateV_direct(old_global_weights_previous, old_global_weights, clients_within, args)
             else:
@@ -563,6 +592,12 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
             # record optimal s
             s_file = save_path + 's.pkl'
             optimal_sampling.append_to_pickle(s_file, s)
+
+            # record the variance values
+            var = compute_variance_direct(G=allnew_gradients, di=dis_s, p_all=args.p_all, stale_adjusted=Q)
+            var_file = save_path + 'var.pkl'
+            optimal_sampling.append_to_pickle(var_file, var)
+
 
             for i, gradient_dict in enumerate(models_gradient_dict):  # active clients
                 d_i = dis_s[chosen_clients[i]]

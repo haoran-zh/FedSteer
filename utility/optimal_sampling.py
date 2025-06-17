@@ -1045,5 +1045,5 @@ def sample_unbalanced_distribution(clients_process, m, givenProb, task_num):
         clients_task.append(np.random.choice(task_num))
         # record the probability in p_list
         p_list[clients_task[-1]].append(p_all[clients_process.index(client)])
-    return chosen_clients, clients_task, p_list  # here we don't consider tasks
+    return chosen_clients, clients_task, p_list, p_all  # here we don't consider tasks
 
