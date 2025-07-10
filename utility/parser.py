@@ -102,9 +102,10 @@ class ParserArgs(object):
         # randomKglobal
         self.parser.add_argument("--randomKglobal", type=int, default=0, help="select K clients globally to do the linear combination")
         # create a new name for
-        #self.parser.add_argument("--clients_within_global", nargs='*', type=int, default=[0],
-                                 #help="list of clients within")
-
+        self.parser.add_argument("--norm_candidates", action="store_true", help="normalization for candidates in gradient different method")
+        # s_slot
+        self.parser.add_argument("--s_slot", type=int, default=1,
+                                 help="every s_slot rounds, we update the s value")
 
     def get_args(self):
         args = self.parser.parse_args()
