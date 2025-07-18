@@ -106,6 +106,13 @@ class ParserArgs(object):
         # s_slot
         self.parser.add_argument("--s_slot", type=int, default=1,
                                  help="every s_slot rounds, we update the s value")
+        # args.lam
+        self.parser.add_argument("--lam", type=float, default=0.01, help="lambda for regularization")
+        # args.K
+        self.parser.add_argument("--K", type=int, default=None, help="number of clients to select for OMP")
+        # args.OMP
+        self.parser.add_argument("--OMP", action="store_true", help="use OMP for client selection")
+
 
     def get_args(self):
         args = self.parser.parse_args()

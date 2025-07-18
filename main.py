@@ -517,7 +517,7 @@ if __name__=="__main__":
                     for task_idx in range(len(task_type)):
                         global_accs.append(temp_global_results[task_idx][0])
                 # update stale after aggregation
-                # define pseudo_all_tasks_gradients_list for format matching
+                # define pseudo_all_tasks_gradients_list for format matching.py
                 if args.approximation is True:
                     pseudo_all_tasks_gradients_list = copy.deepcopy(old_local_updates)
                     # update new ones

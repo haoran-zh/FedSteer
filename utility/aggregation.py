@@ -4,6 +4,7 @@ import utility.optimal_sampling as optimal_sampling
 import copy
 import pickle
 from utility.optimal_sampling import weight_minus, weight_add
+from utility.matching import OMP
 
 def candidates_normalization(candidates):
     # compute the avg norm of candidates
@@ -463,7 +464,6 @@ def updateV_direct_maintain(H, models_gradient_dict, clients_within, args):
         V_list.append(V_i)
 
     # Now solve for s for each i and compute Q.
-    s = np.zeros((N, N_reduced))  # each row i is the coefficients s_i
     Q = []  # Q[i] will be unflattened back to dict format
 
     for i in range(N):
@@ -477,7 +477,7 @@ def updateV_direct_maintain(H, models_gradient_dict, clients_within, args):
         Q_i = unflatten_weights(Q_i_flat, H[i])
         Q_update = Q_i
         Q.append(Q_update)
-    return s, Q
+    return Q
 
 
 
@@ -679,44 +679,58 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                     global_weights_dict[key] -= d_i * h_i[key]
         elif args.V_direct is True:
             # random sample k clients as the base
-            if args.randomK > 0:
-                client_num = args.num_clients
-                randomK = args.randomK
-                # select randomK clients out of C
-                randomK_clients = np.random.choice(client_num, randomK, replace=False)
-                clients_within = randomK_clients
-                args.clients_within_global = randomK_clients
-            elif args.randomKglobal > 0:
-                # use clients with similar distribution
-                # if first round, decide random, else, use previous random
-                if total_rounds < 2:
+            if args.OMP is True:
+                if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
+                    clients_within, s = OMP(stale_gradients=old_global_weights, fresh_gradients=allnew_gradients, d_list=dis_s,
+                                        p_list=args.p_all, k=args.K, Lambda=args.lam, lambda0=None)
+                    args.clients_within_global = clients_within
+                    args.s_maintain = copy.deepcopy(s)
+                    # save clients_within_global
+                    clientSet_file = save_path + 'cSet.pkl'
+                    optimal_sampling.append_to_pickle(clientSet_file, clients_within)
+
+                Q = updateV_direct_maintain(old_global_weights, allnew_gradients, args.clients_within_global, args)
+
+
+            else:
+                if args.randomK > 0:
                     client_num = args.num_clients
-                    randomK = args.randomKglobal
+                    randomK = args.randomK
                     # select randomK clients out of C
                     randomK_clients = np.random.choice(client_num, randomK, replace=False)
                     clients_within = randomK_clients
-                    args.clients_within_global = clients_within
+                    args.clients_within_global = randomK_clients
+                elif args.randomKglobal > 0:
+                    # use clients with similar distribution
+                    # if first round, decide random, else, use previous random
+                    if total_rounds < 2:
+                        client_num = args.num_clients
+                        randomK = args.randomKglobal
+                        # select randomK clients out of C
+                        randomK_clients = np.random.choice(client_num, randomK, replace=False)
+                        clients_within = randomK_clients
+                        args.clients_within_global = clients_within
+                    else:
+                        # use previous random clients
+                        clients_within = args.clients_within_global
                 else:
-                    # use previous random clients
-                    clients_within = args.clients_within_global
-            else:
-                client_num = int(args.num_clients)
-                clients_within = [i for i in range(client_num)]
+                    client_num = int(args.num_clients)
+                    clients_within = [i for i in range(client_num)]
 
-            if args.effV is True:
-                if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
-                    s, Q = updateV_direct(old_global_weights_previous, old_global_weights, clients_within, args)
+                if args.effV is True:
+                    if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
+                        s, Q = updateV_direct(old_global_weights_previous, old_global_weights, clients_within, args)
+                    else:
+                        Q = updateV_direct_maintain(old_global_weights, allnew_gradients, clients_within, args)
                 else:
-                    s, Q = updateV_direct_maintain(old_global_weights, allnew_gradients, clients_within, args)
-            else:
-                if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
-                    s, Q = updateV_direct(old_global_weights, allnew_gradients, clients_within, args)
-                else:
-                    s, Q = updateV_direct_maintain(old_global_weights, allnew_gradients, clients_within, args)
+                    if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
+                        s, Q = updateV_direct(old_global_weights, allnew_gradients, clients_within, args)
+                    else:
+                        Q = updateV_direct_maintain(old_global_weights, allnew_gradients, clients_within, args)
 
             # record optimal s
             s_file = save_path + 's.pkl'
-            optimal_sampling.append_to_pickle(s_file, s)
+            optimal_sampling.append_to_pickle(s_file, args.s_maintain)
 
             # record the variance values
             var = compute_variance_direct(G=allnew_gradients, di=dis_s, p_all=args.p_all, stale_adjusted=Q)
