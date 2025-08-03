@@ -1,126 +1,195 @@
 import torch
 import numpy as np
+from types import SimpleNamespace
 
 
-def OMP(stale_gradients, fresh_gradients, d_list, p_list, k, Lambda, lambda0=None):
-    """
-    Orthogonal Matching Pursuit for client selection and coefficient optimization.
-
-    Args:
-        stale_gradients: List of stale gradients (tensors) from candidate clients.
-        fresh_gradients: List of fresh gradients (tensors) from all clients.
-        d_list: List of weights d_i for each client.
-        p_list: List of sampling probabilities p_i for each client.
-        k: Number of clients to select.
-        Lambda: Global regularization parameter.
-        lambda0: Optional common regularization parameter for selection.
-
-    Returns:
-        selected_clients: Indices of selected stale gradients.
-        coefficients: Coefficients s_i for each fresh gradient (list of tensors).
-    """
-    def flatten_weights(weights):
-        last_layer_key = list(weights.keys())[-1]
-        return weights[last_layer_key].reshape(-1)
-        # return torch.cat([weights[k].reshape(-1) for k in sorted(weights.keys())])
+def flatten_weights(weights):
+    """Flattens the weights of a model, using only the last layer."""
+    if not weights:
+        return torch.tensor([])
+    last_layer_key = list(weights.keys())[-1]
+    return weights[last_layer_key].reshape(-1)
 
 
+def solve_s_for_subset(target_gradients_G, stale_gradients_Q_selected, lambda_i_list):
+    """Solves for the optimal coefficients 's' using per-client ridge regression."""
+    N, D = target_gradients_G.shape
+    k = stale_gradients_Q_selected.shape[0]
+    device = target_gradients_G.device
 
-    M = len(stale_gradients)
-    N = len(fresh_gradients)
+    QQT = stale_gradients_Q_selected @ stale_gradients_Q_selected.T
+    GQT = target_gradients_G @ stale_gradients_Q_selected.T
 
-    # Handle edge cases
-    if k <= 0:
-        return [], []
-    k = min(k, M)
-
-    # Flatten all gradients
-    stale_flat = [flatten_weights(g) for g in stale_gradients]
-    fresh_flat = [flatten_weights(g) for g in fresh_gradients]
-    d_list = torch.tensor(d_list, dtype=torch.float32)
-    p_list = torch.tensor(p_list, dtype=torch.float32)
-
-    # Set common regularization parameter
-    if lambda0 is None:
-        lambda0 = Lambda
-
-    # Initialize data structures
-    selected_clients = []
-    Q_list = []
-    A = None
-
-    # OMP iterations
-    for step in range(k):
-        best_gain = -float('inf')
-        best_v = None
-        best_r = None
-        best_b = None
-
-        # Precompute current Q_S if not empty
-        Q_S = torch.stack(Q_list, dim=1) if Q_list else None
-
-        # Evaluate each candidate client
-        for v in range(M):
-            if v in selected_clients:  # if already selected, skip
-                continue
-
-            q_v = stale_flat[v]
-
-            # Compute residual vector r
-            if Q_S is None:
-                r = q_v
-                b = None
-            else:
-                b = Q_S.t() @ q_v
-                a = torch.linalg.solve(A, b)
-                r = q_v - Q_S @ a  # get the residual vector
-
-            # Compute numerator: sum_i [ (d_i^2 / p_i) * (G_i^t · r)^2 ]
-            numerator_val = 0.0
-            for i in range(N):
-                ip = torch.dot(fresh_flat[i], r)
-                term = (d_list[i] ** 2 / p_list[i]) * (ip ** 2)
-                numerator_val += term.item()
-
-            # Compute denominator: ||r||^2 + lambda0
-            denominator_val = torch.dot(r, r).item() + lambda0
-            gain_v = numerator_val / denominator_val
-
-            # Track best candidate
-            if gain_v > best_gain:
-                best_gain = gain_v
-                best_v = v
-                best_r = r
-                best_b = b
-
-        # Update selected set
-        selected_clients.append(best_v)
-        Q_list.append(stale_flat[best_v])
-
-        # Update matrix A for next iteration
-        if step == 0:
-            A = torch.tensor([[torch.dot(Q_list[0], Q_list[0]) + lambda0]])
-        else:
-            new_size = len(selected_clients)
-            new_A = torch.zeros((new_size, new_size))
-            new_A[:new_size - 1, :new_size - 1] = A
-            new_A[:new_size - 1, new_size - 1] = best_b
-            new_A[new_size - 1, :new_size - 1] = best_b
-            new_A[new_size - 1, new_size - 1] = torch.dot(Q_list[-1], Q_list[-1]) + lambda0
-            A = new_A
-
-    # Compute coefficients s_i for each client using client-specific regularization
-    coefficients = []
-    Q_S = torch.stack(Q_list, dim=1)  # d x k
-
+    s_optimal_list = []
     for i in range(N):
-        lambda_i = Lambda * p_list[i] / (d_list[i] ** 2)
-        A_i = Q_S.t() @ Q_S + lambda_i * torch.eye(len(selected_clients))
-        b_i = Q_S.t() @ fresh_flat[i]
-        s_i = torch.linalg.solve(A_i, b_i)
-        coefficients.append(s_i)
-    # convert coefficients to an array so I can use it as coefficients[i,:]
-    coefficients = [c.detach().cpu().numpy() for c in coefficients]  # convert tensors to numpy arrays
-    coefficients = np.array(coefficients)  # convert to numpy array for easier indexing
+        lambda_i = lambda_i_list[i]
+        regularized_QQT = QQT + lambda_i * torch.eye(k, device=device)
+        try:
+            inv_matrix = torch.linalg.inv(regularized_QQT)
+        except torch.linalg.LinAlgError:
+            inv_matrix = torch.linalg.pinv(regularized_QQT)
+        s_i = GQT[i, :] @ inv_matrix
+        s_optimal_list.append(s_i)
 
-    return selected_clients, coefficients
+    return torch.stack(s_optimal_list)
+
+
+def calculate_total_error(fresh_gradients, stale_gradients, selected_indices, coefficients, weights, Lambda):
+    """Calculates the final regularized variance error for a given selection."""
+    Q_selected = stale_gradients[selected_indices]
+    approximated_G = coefficients @ Q_selected
+
+    # ||G - sQ||^2 term, weighted per client
+    residual_matrix = fresh_gradients - approximated_G
+    error_term = torch.sum(weights.unsqueeze(1) * (residual_matrix ** 2))
+
+    # Lambda * ||s||^2 term
+    reg_term = Lambda * torch.sum(coefficients ** 2)
+
+    return error_term + reg_term
+
+
+def _run_omp_trial(initial_indices, k, target_gradients_G, stale_gradients_Q_pool, weights, lambda_i_values):
+    """Helper function to run a single OMP trial from a given starting set."""
+    M = stale_gradients_Q_pool.shape[0]
+    N = target_gradients_G.shape[0]
+
+    selected_indices = list(initial_indices)
+    # Ensure remaining_indices are not in the initial set
+    remaining_indices = [i for i in range(M) if i not in selected_indices]
+
+    # If starting from a non-empty set, calculate the initial residual
+    if selected_indices:
+        Q_selected = stale_gradients_Q_pool[selected_indices]
+        s_current = solve_s_for_subset(target_gradients_G, Q_selected, lambda_i_values)
+        residual = target_gradients_G - (s_current @ Q_selected)
+    else:
+        residual = target_gradients_G.clone()
+
+    s_final = None
+
+    # Run greedy selection for the remaining number of clients
+    for _ in range(k - len(selected_indices)):
+        if not remaining_indices:
+            break
+
+        correlations = residual @ stale_gradients_Q_pool[remaining_indices].T
+        scores = weights * (correlations ** 2)
+        total_scores = scores.sum(dim=0)
+
+        best_local_idx = torch.argmax(total_scores)
+        best_global_idx = remaining_indices.pop(best_local_idx)
+        selected_indices.append(best_global_idx)
+
+        Q_selected = stale_gradients_Q_pool[selected_indices]
+        s_current = solve_s_for_subset(target_gradients_G, Q_selected, lambda_i_values)
+        residual = target_gradients_G - (s_current @ Q_selected)
+        s_final = s_current
+
+    # If k was smaller than initial set, calculate s_final now
+    if s_final is None and selected_indices:
+        Q_selected = stale_gradients_Q_pool[selected_indices]
+        s_final = solve_s_for_subset(target_gradients_G, Q_selected, lambda_i_values)
+
+    return selected_indices, s_final
+
+
+def OMP(stale_gradients, fresh_gradients, d_list, p_list, k, Lambda, args):
+    """
+    Main OMP function with gradient normalization and output rescaling.
+    """
+    # --- 1. Data Preparation ---
+    first_tensor = next(iter(stale_gradients[0].values()))
+    device = first_tensor.device
+
+    stale_flat_list = [flatten_weights(g).to(device) for g in stale_gradients]
+    fresh_flat_list = [flatten_weights(g).to(device) for g in fresh_gradients]
+
+    stale_gradients_Q_pool = torch.stack(stale_flat_list)
+    target_gradients_G = torch.stack(fresh_flat_list)
+
+    ## --- NORMALIZATION START --- ##
+    # This is the new section for normalizing the inputs.
+
+    # Calculate L2 norm for each gradient vector (row). keepdim=True helps with broadcasting.
+    fresh_norms = torch.linalg.norm(target_gradients_G, dim=1, keepdim=True)
+    stale_norms = torch.linalg.norm(stale_gradients_Q_pool, dim=1, keepdim=True)
+
+    # Add a small epsilon to avoid division by zero for zero-norm vectors.
+    epsilon = 1e-8
+
+    # Create normalized versions of the gradient tensors.
+    G_normalized = target_gradients_G / (fresh_norms + epsilon)
+    Q_normalized = stale_gradients_Q_pool / (stale_norms + epsilon)
+
+    print(f"[INFO] Gradients have been normalized for OMP.")
+    ## --- NORMALIZATION END --- ##
+
+    d_list = torch.as_tensor(d_list, device=device, dtype=torch.float32)
+    p_list = torch.as_tensor(p_list, device=device, dtype=torch.float32)
+
+    M = Q_normalized.shape[0]
+    k = min(k, M)
+    if k <= 0:
+        return [], np.array([])
+
+    weights = (d_list ** 2) / (p_list + 1e-9)
+    lambda_i_values = Lambda * (p_list + 1e-9) / (d_list ** 2 + 1e-9)
+
+    # --- 2. Main Logic ---
+    # The algorithm now runs on the NORMALIZED gradients.
+    if args.three_sample:
+        best_error = float('inf')
+        best_selection = []
+        best_coeffs_hat = torch.empty(0)  # These are coefficients for the normalized problem
+
+        print(f"Running {args.num_trials} trials with 3-sample initialization...")
+        for i in range(args.num_trials):
+            initial_indices = np.random.choice(M, 3, replace=False)
+
+            # Note: Pass normalized gradients to the trial runner
+            selected_indices, s_hat_final = _run_omp_trial(initial_indices, k, G_normalized, Q_normalized,
+                                                           weights.unsqueeze(1), lambda_i_values)
+
+            if s_hat_final is not None and s_hat_final.numel() > 0:
+                # Pass normalized gradients to the error calculation as well
+                total_error = calculate_total_error(G_normalized, Q_normalized, selected_indices, s_hat_final, weights,
+                                                    Lambda)
+                print(f"  Trial {i + 1}: this error: {total_error:.6f}")
+
+                if total_error < best_error:
+                    best_error = total_error
+                    best_selection = selected_indices
+                    best_coeffs_hat = s_hat_final
+                    print(f"  Trial {i + 1}: New best error found: {best_error:.6f}")
+
+        selected_indices = best_selection
+        s_final_hat = best_coeffs_hat
+
+    else:
+        # print("Running standard OMP...")
+        selected_indices, s_final_hat = _run_omp_trial([], k, G_normalized, Q_normalized, weights.unsqueeze(1),
+                                                       lambda_i_values)
+
+    # --- 3. Format Output ---
+    if s_final_hat is not None and s_final_hat.numel() > 0:
+        ## --- RESCALING START --- ##
+        # This new section rescales the coefficients back to the original gradient magnitudes.
+
+        # Get the original norms of the selected stale gradients
+        selected_stale_norms = stale_norms[selected_indices].view(1, -1)  # Shape (1, k)
+
+        # Rescale coefficients: s_ij = s_hat_ij * (||G_i|| / ||q_j||)
+        # We use broadcasting: (N, 1) / (1, k) -> (N, k) scaling matrix
+        scaling_matrix = (fresh_norms + epsilon) / (selected_stale_norms + epsilon)
+        s_rescaled = s_final_hat * scaling_matrix
+
+        # print("[INFO] Output coefficients have been rescaled.")
+        ## --- RESCALING END --- ##
+
+        # Convert the rescaled tensor to a NumPy array
+        coefficients_np = s_rescaled.detach().cpu().numpy()
+    else:
+        coefficients_np = np.array([])
+
+    return selected_indices, coefficients_np

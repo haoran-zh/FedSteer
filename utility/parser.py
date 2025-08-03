@@ -112,7 +112,12 @@ class ParserArgs(object):
         self.parser.add_argument("--K", type=int, default=None, help="number of clients to select for OMP")
         # args.OMP
         self.parser.add_argument("--OMP", action="store_true", help="use OMP for client selection")
-
+        # num_trials
+        self.parser.add_argument("--num_trials", type=int, default=None, help="number of trials for each initialization in OMP")
+        # three_sample
+        self.parser.add_argument("--three_sample", action="store_true", help="use 3-sample initialization for OMP")
+        # recentK
+        self.parser.add_argument("--recentK", type=int, default=0, help="select recent K clients")
 
     def get_args(self):
         args = self.parser.parse_args()

@@ -175,6 +175,20 @@ def window_states_Krank(allocation_history, task_index, args):
     # return the most recent K clients
     return clients_within_window
 
+def Krank_active(allocation_history, task_index, args, K):
+    # use this function at the start, create a list to include all clients within the bound
+    # if Krank is True, then window_max (K) means the most recent K stale updates
+    # and window_size will not be used
+    clients_recent_activeTime = {}
+    clients_num = args.num_clients
+    for i in range(clients_num):
+        delta_t = optimal_sampling.find_recent_allocation(allocation_history, task_index, i)
+        clients_recent_activeTime[i] = delta_t
+    # rank clients by their active time
+    clients_within_window = dict(sorted(clients_recent_activeTime.items(), key=lambda item: item[1])[:K])
+    # return the most recent K clients
+    return clients_within_window
+
 
 def updateV(H, models_gradient_dict, clients_within, args):
     """
@@ -682,7 +696,7 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
             if args.OMP is True:
                 if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
                     clients_within, s = OMP(stale_gradients=old_global_weights, fresh_gradients=allnew_gradients, d_list=dis_s,
-                                        p_list=args.p_all, k=args.K, Lambda=args.lam, lambda0=None)
+                                        p_list=args.p_all, k=args.K, Lambda=args.lam, args=args)
                     args.clients_within_global = clients_within
                     args.s_maintain = copy.deepcopy(s)
                     # save clients_within_global
@@ -713,6 +727,14 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                     else:
                         # use previous random clients
                         clients_within = args.clients_within_global
+                elif args.recentK > 0:
+                    # select most recent K active clients
+                    clients_within = Krank_active(allocation_result, task_index, args, K=args.recentK)
+                    if len(clients_within) < args.recentK:
+                        client_num = int(args.num_clients)
+                        clients_within = [i for i in range(client_num)]
+                    args.clients_within_global = clients_within
+
                 else:
                     client_num = int(args.num_clients)
                     clients_within = [i for i in range(client_num)]
