@@ -693,8 +693,8 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                     global_weights_dict[key] -= d_i * h_i[key]
         elif args.V_direct is True:
             # random sample k clients as the base
-            if args.OMP is True:
-                if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
+            if args.OMP is True: # change OMP to make it only work on the first 5 rounds
+                if total_rounds <= 5:
                     clients_within, s = OMP(stale_gradients=old_global_weights, fresh_gradients=allnew_gradients, d_list=dis_s,
                                         p_list=args.p_all, k=args.K, Lambda=args.lam, args=args)
                     args.clients_within_global = clients_within
@@ -702,8 +702,15 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
                     # save clients_within_global
                     clientSet_file = save_path + 'cSet.pkl'
                     optimal_sampling.append_to_pickle(clientSet_file, clients_within)
-
-                Q = updateV_direct_maintain(old_global_weights, allnew_gradients, args.clients_within_global, args)
+                    Q = updateV_direct_maintain(old_global_weights, allnew_gradients, args.clients_within_global, args)
+                else: # after round 5, use previous clients_within_global
+                    clients_within = args.clients_within_global
+                    # optimize optimal s
+                    if total_rounds % args.s_slot == 0:
+                        s, Q = updateV_direct(old_global_weights, allnew_gradients, clients_within, args)
+                    else:
+                        Q = updateV_direct_maintain(old_global_weights, allnew_gradients, clients_within, args)
+                # Q = updateV_direct_maintain(old_global_weights, allnew_gradients, args.clients_within_global, args)
 
 
             else:

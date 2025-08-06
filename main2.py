@@ -195,7 +195,16 @@ if __name__=="__main__":
                                             max_data_num=tasks_data_info[i][3],
                                             class_ratio=class_ratio[i],
                                             num_users=num_clients)) # 0: clients_data_idx 1: clients_label
+                    # elif type_iid[i] == 'bipartite':
+                    #     tasks_data_idx.append(dataset.bipartite(dataset=tasks_data_info[i][0],
+                    #                                          min_data_num=tasks_data_info[i][2],
+                    #                                          max_data_num=tasks_data_info[i][3],
+                    #                                          class_ratio=class_ratio[i],
+                    #                                          num_users=num_clients))
                     global_models.append(load_model(name_data=task_type[i], num_classes=tasks_data_info[i][5], args=args).to(device))
+
+
+
                 local_results.append([0.1, 1])  # 0: acc, 1: loss
                 global_results.append([0.1, 1])
 
@@ -210,6 +219,7 @@ if __name__=="__main__":
                     elif type_iid[task_idx] == 'noniid':
                         local_data_num.append(len(tasks_data_idx[task_idx][0][client_idx]))
                 all_data_num.append(local_data_num)
+            print(all_data_num)
 
             # record data distribution, client labels
             for task_idx in range(len(task_type)):

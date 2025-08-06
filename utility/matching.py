@@ -122,7 +122,7 @@ def OMP(stale_gradients, fresh_gradients, d_list, p_list, k, Lambda, args):
     G_normalized = target_gradients_G / (fresh_norms + epsilon)
     Q_normalized = stale_gradients_Q_pool / (stale_norms + epsilon)
 
-    print(f"[INFO] Gradients have been normalized for OMP.")
+    # print(f"[INFO] Gradients have been normalized for OMP.")
     ## --- NORMALIZATION END --- ##
 
     d_list = torch.as_tensor(d_list, device=device, dtype=torch.float32)
