@@ -556,6 +556,8 @@ if __name__=="__main__":
                     for task_idx in range(len(task_type)):
                         global_accs.append(temp_global_results[task_idx][0])
                 else:
+
+
                     temp_global_results = []
                     if (algorithm_name == 'random') or (algorithm_name == "round_robin") or (algorithm_name == "alphafair"):
                         localLoss = np.zeros((task_number, num_clients))
@@ -568,20 +570,24 @@ if __name__=="__main__":
                             if clients_task[clients_idx] == task_idx:
                                 temp_local_gradients.append(local_gradients)
                                 this_task_chosen_clients.append(chosen_clients[clients_idx])
-                                if args.approx_optimal is True:
+                                # try if p_dict exists, if exist, use temp_local_P = p_dict[task_idx], else, create in different ways
+                                try:
                                     temp_local_P = p_dict[task_idx]
-                                elif args.approximation is True:
-                                    if round == 0:
-                                        temp_local_P.append(C/task_number)
+                                except:
+                                    if args.approx_optimal is True:
+                                        temp_local_P = p_dict[task_idx]
+                                    elif args.approximation is True:
+                                        if round == 0:
+                                            temp_local_P.append(C/task_number)
+                                        else:
+                                            temp_local_P = p_dict[task_idx]  # define the same for many times, but it is ok here
                                     else:
-                                        temp_local_P = p_dict[task_idx]  # define the same for many times, but it is ok here
-                                else:
-                                    if args.fullparticipation is True:
-                                        p = 1.0
-                                        temp_local_P.append(p)
-                                    else:
-                                        p = C/task_number
-                                        temp_local_P.append(p)
+                                        if args.fullparticipation is True:
+                                            p = 1.0
+                                            temp_local_P.append(p)
+                                        else:
+                                            p = C/task_number
+                                            temp_local_P.append(p)
                                 # do not need to collect local_data num, just use all_local_data_num
                         # aggregation
                         LR = optimizer_config(task_type[task_idx])
@@ -593,12 +599,14 @@ if __name__=="__main__":
                                     federated_stale(global_weights=global_models[task_idx],
                                                     models_gradient_dict=temp_local_gradients,
                                                     local_data_num=dis[task_idx],
-                                                    p_list=temp_local_P, args=args,
+                                                    p_list=p_dict[task_idx], args=args,
                                                     decay_beta=decay_beta_record[round, task_idx],
                                                     chosen_clients=this_task_chosen_clients,
-                                                    old_global_weights=old_local_updates[task_idx],
+                                                    old_global_weights=adjusted_old_local_updates[task_idx],
+                                                    old_global_weights_previous=old_local_updates_previous[task_idx],
                                                     allocation_result=allocation_dict_list, task_index=task_idx,
-                                                    save_path='./result/' + folder_name + '/'))
+                                                    save_path='./result/' + folder_name + '/',
+                                                    allnew_gradients=all_tasks_gradients_list[task_idx]))
                             else:
                                 global_models[task_idx].load_state_dict(
                                 federated_prob(global_weights=global_models[task_idx],

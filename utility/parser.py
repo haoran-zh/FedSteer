@@ -118,6 +118,8 @@ class ParserArgs(object):
         self.parser.add_argument("--three_sample", action="store_true", help="use 3-sample initialization for OMP")
         # recentK
         self.parser.add_argument("--recentK", type=int, default=0, help="select recent K clients")
+        self.parser.add_argument("--improveOMP", action="store_true", help="based on OMP, an improved one")
+        self.parser.add_argument("--num_swaps", type=int, default=5, help="args.num_swaps")
 
     def get_args(self):
         args = self.parser.parse_args()

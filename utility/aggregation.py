@@ -4,7 +4,7 @@ import utility.optimal_sampling as optimal_sampling
 import copy
 import pickle
 from utility.optimal_sampling import weight_minus, weight_add
-from utility.matching import OMP
+from utility.matching import OMP, random_improve
 
 def candidates_normalization(candidates):
     # compute the avg norm of candidates
@@ -218,7 +218,8 @@ def updateV(H, models_gradient_dict, clients_within, args):
         return new_weights
 
     def safe_solve(A, b, epsilon=1e-6):
-            return torch.linalg.pinv(A) @ b
+        return torch.linalg.lstsq(A, b).solution
+        # return torch.linalg.pinv(A) @ b
 
     #clients_within = list(clients_within.keys())
     # clients_within = [i for i in range(40)]  # include all clients
@@ -308,190 +309,429 @@ def compute_variance_direct(G, di, p_all, stale_adjusted):
     return var
 
 
-def updateV_direct(H, models_gradient_dict, clients_within, args):
+# def updateV_direct(H, models_gradient_dict, clients_within, args):
+#     """
+#     H: list of dictionaries representing q_i^t for each client i.
+#     models_gradient_dict: list of dictionaries representing G_i^t for each client i.
+#
+#     Returns:
+#       s: a numpy array of shape (N,N) with the optimal coefficients s_{ij}.
+#       Q: a list of dictionaries, where Q[i] = sum_j s_{ij} * (flattened difference corresponding to H[j]-H[i])
+#          (unflattened to have same structure as H[i]).
+#     """
+#
+#     # helper function to flatten a dict of tensors into a 1d tensor.
+#     # We sort the keys so that the order is deterministic.
+#     def flatten_weights(weights):
+#         return torch.cat([weights[k].reshape(-1) for k in sorted(weights.keys())])
+#
+#     def last_layer_flatten_weights(weights):
+#         # only flatten the last layer of the model
+#         last_layer_key = list(weights.keys())[-1]
+#         return weights[last_layer_key].reshape(-1)
+#
+#     # helper function to unflatten a flat tensor back into the dict shape given by template.
+#     def unflatten_weights(flat_tensor, template):
+#         new_weights = {}
+#         pointer = 0
+#         for k in sorted(template.keys()):
+#             shape = template[k].shape
+#             numel = template[k].numel()
+#             new_weights[k] = flat_tensor[pointer:pointer + numel].view(shape)
+#             pointer += numel
+#         return new_weights
+#
+#     def safe_solve(A, b, epsilon=1e-6):
+#         # return torch.linalg.lstsq(A, b).solution
+#         # print if A is in GPU or CPU device
+#         print("A device:", A.device)
+#         return torch.linalg.pinv(A) @ b
+#
+#     # clients_within = list(clients_within.keys())
+#     # clients_within = [i for i in range(40)]  # include all clients
+#     print('start updateV_direct')
+#
+#     N = len(H)
+#
+#
+#     # First, build V_list and r_list where each V_list[i] is a matrix (d x N) and each r_list[i] is a vector (d,)
+#     V_list = []  # Q actually, stale
+#     VLL_list = []
+#     r_list = []  # new gradient
+#     rLL_list = []
+#
+#     # Determine the dimension by flattening one of the H dictionaries
+#     H_reduced = [H[client] for client in clients_within]
+#     d = flatten_weights(H_reduced[0]).shape[0]
+#     N_reduced = len(clients_within)
+#
+#     force_range = args.force_range
+#
+#     for i in range(N):
+#         if args.lastLayer is True:
+#             rLL_i = last_layer_flatten_weights(models_gradient_dict[i])
+#             rLL_list.append(rLL_i)
+#         r_i = flatten_weights(models_gradient_dict[i])
+#         r_list.append(r_i)
+#
+#         # Build V_i: for each j, if j==i then a zero vector, else flatten( H[j]-H[i] )
+#         V_i_cols = []
+#         VLL_i_cols = []
+#         for j in clients_within:
+#             if args.lastLayer is True:
+#                 vLL_ij = last_layer_flatten_weights(H[j])
+#                 vLL_ij = vLL_ij / N_reduced
+#                 VLL_i_cols.append(vLL_ij.unsqueeze(1))
+#             v_ij = flatten_weights(H[j])
+#             # rescale it to 1/N_reduced
+#             v_ij = v_ij / N_reduced
+#             # Make it a column vector
+#             V_i_cols.append(v_ij.unsqueeze(1))  # shape (d,1)
+#         # Stack columns to form V_i (shape d x N)
+#         if args.lastLayer is True:
+#             VLL_i = torch.cat(VLL_i_cols, dim=1)
+#             VLL_list.append(VLL_i)
+#         V_i = torch.cat(V_i_cols, dim=1)
+#         V_list.append(V_i)
+#     print('finish r loop')
+#     # Now solve for s for each i and compute Q.
+#     s = np.zeros((N, N_reduced))  # each row i is the coefficients s_i
+#     Q = []  # Q[i] will be unflattened back to dict format
+#
+#     if args.lastLayer is True:
+#         V_adpt_list = VLL_list
+#         r_adpt_list = rLL_list
+#     else:
+#         V_adpt_list = V_list
+#         r_adpt_list = r_list
+#     print('start solving 1')
+#     for i in range(N):
+#         V_i = V_adpt_list[i]  # shape (d, N)  V_i is the same as Q_i, the stale gradients
+#         r_i = r_adpt_list[i]  # shape (d,)  r_i is the new gradients
+#         # Compute the normal equations: A s_i = b, with A = V_i^T V_i and b = V_i^T r_i.
+#         print('start solving 2')
+#         A = V_i.t() @ V_i  # shape (N, N)
+#         b = V_i.t() @ r_i  # shape (N,)
+#         # Solve for s_i; if A is not invertible, use a pseudo-inverse.
+#         print('start solving 3')
+#         s_i = safe_solve(A, b)
+#         print('finish solving')
+#         # Store the coefficients
+#         s[i, :] = s_i.detach().cpu().numpy()
+#         # Compute Q[i] = V_i @ s_i, which is a flat vector of dimension d.
+#         if force_range:
+#             s_i = np.clip(s_i, 0.0, 1.0)
+#         V_all = V_list[i]
+#         Q_i_flat = V_all @ s_i  # shape (d,), the result of sV
+#         # Unflatten Q_i back to the dictionary structure of H[i].
+#         Q_i = unflatten_weights(Q_i_flat, H[i])
+#         Q_update = Q_i
+#         Q.append(Q_update)
+#     args.s_maintain = copy.deepcopy(s)
+#     return s, Q
+
+def flatten_weights(weights):
+    """Flattens a dictionary of tensors into a single 1D tensor."""
+    return torch.cat([weights[k].view(-1) for k in sorted(weights.keys())])
+
+def last_layer_flatten_weights(weights):
+    """Flattens only the last layer of a model's weights dictionary."""
+    last_layer_key = list(weights.keys())[-1]
+    return weights[last_layer_key].view(-1)
+
+def unflatten_weights(flat_tensor, template):
+    """Unflattens a 1D tensor back into a dictionary of tensors matching the template."""
+    new_weights = {}
+    pointer = 0
+    for k in sorted(template.keys()):
+        shape = template[k].shape
+        numel = template[k].numel()
+        new_weights[k] = flat_tensor[pointer:pointer + numel].view(shape)
+        pointer += numel
+    return new_weights
+
+
+def updateV_direct_stable_active(H, models_gradient_dict, clients_within, args, chosen_clients):
     """
-    H: list of dictionaries representing q_i^t for each client i.
-    models_gradient_dict: list of dictionaries representing G_i^t for each client i.
-
-    Returns:
-      s: a numpy array of shape (N,N) with the optimal coefficients s_{ij}.
-      Q: a list of dictionaries, where Q[i] = sum_j s_{ij} * (flattened difference corresponding to H[j]-H[i])
-         (unflattened to have same structure as H[i]).
+    Updates projection coefficients 's' for active clients, reuses for inactive,
+    and computes corrected gradients 'Q' for all.
     """
+    # ------------------ 1. Setup and Flatten Tensors ONCE ------------------
 
-    # helper function to flatten a dict of tensors into a 1d tensor.
-    # We sort the keys so that the order is deterministic.
-    def flatten_weights(weights):
-        return torch.cat([weights[k].reshape(-1) for k in sorted(weights.keys())])
-
-    def last_layer_flatten_weights(weights):
-        # only flatten the last layer of the model
-        last_layer_key = list(weights.keys())[-1]
-        return weights[last_layer_key].reshape(-1)
-
-    # helper function to unflatten a flat tensor back into the dict shape given by template.
-    def unflatten_weights(flat_tensor, template):
-        new_weights = {}
-        pointer = 0
-        for k in sorted(template.keys()):
-            shape = template[k].shape
-            numel = template[k].numel()
-            new_weights[k] = flat_tensor[pointer:pointer + numel].view(shape)
-            pointer += numel
-        return new_weights
-
-    def safe_solve(A, b, epsilon=1e-6):
-        return torch.linalg.pinv(A) @ b
-
-    # clients_within = list(clients_within.keys())
-    # clients_within = [i for i in range(40)]  # include all clients
     N = len(H)
-
-
-    # First, build V_list and r_list where each V_list[i] is a matrix (d x N) and each r_list[i] is a vector (d,)
-    V_list = []  # Q actually, stale
-    VLL_list = []
-    r_list = []  # new gradient
-    rLL_list = []
-
-    # Determine the dimension by flattening one of the H dictionaries
     H_reduced = [H[client] for client in clients_within]
-    d = flatten_weights(H_reduced[0]).shape[0]
     N_reduced = len(clients_within)
 
-    force_range = args.force_range
+    if N_reduced == 0:
+        return np.zeros((N, 0)), []
 
-    for i in range(N):
-        if args.lastLayer is True:
-            rLL_i = last_layer_flatten_weights(models_gradient_dict[i])
-            rLL_list.append(rLL_i)
-        r_i = flatten_weights(models_gradient_dict[i])
-        r_list.append(r_i)
+    template = H[0]
+    device = next(iter(template.values())).device
 
-        # Build V_i: for each j, if j==i then a zero vector, else flatten( H[j]-H[i] )
-        V_i_cols = []
-        VLL_i_cols = []
-        for j in clients_within:
-            if args.lastLayer is True:
-                vLL_ij = last_layer_flatten_weights(H[j])
-                vLL_ij = vLL_ij / N_reduced
-                VLL_i_cols.append(vLL_ij.unsqueeze(1))
-            v_ij = flatten_weights(H[j])
-            # rescale it to 1/N_reduced
-            v_ij = v_ij / N_reduced
-            # Make it a column vector
-            V_i_cols.append(v_ij.unsqueeze(1))  # shape (d,1)
-        # Stack columns to form V_i (shape d x N)
-        if args.lastLayer is True:
-            VLL_i = torch.cat(VLL_i_cols, dim=1)
-            VLL_list.append(VLL_i)
-        V_i = torch.cat(V_i_cols, dim=1)
-        V_list.append(V_i)
-
-    # Now solve for s for each i and compute Q.
-    s = np.zeros((N, N_reduced))  # each row i is the coefficients s_i
-    Q = []  # Q[i] will be unflattened back to dict format
-
-    if args.lastLayer is True:
-        V_adpt_list = VLL_list
-        r_adpt_list = rLL_list
+    # Stack all stale gradients from the caching subset (clients_within) into Q_stale
+    if args.lastLayer:
+        G = torch.stack([last_layer_flatten_weights(g) for g in models_gradient_dict])
+        Q_stale_full = torch.stack([flatten_weights(h) / N_reduced for h in H_reduced], dim=1)
+        Q_stale_adpt = torch.stack([last_layer_flatten_weights(h) / N_reduced for h in H_reduced], dim=1)
     else:
-        V_adpt_list = V_list
-        r_adpt_list = r_list
+        G = torch.stack([flatten_weights(g) for g in models_gradient_dict])
+        Q_stale_full = torch.stack([flatten_weights(h) / N_reduced for h in H_reduced], dim=1)
+        Q_stale_adpt = Q_stale_full
 
-    for i in range(N):
-        V_i = V_adpt_list[i]  # shape (d, N)  V_i is the same as Q_i, the stale gradients
-        r_i = r_adpt_list[i]  # shape (d,)  r_i is the new gradients
-        # Compute the normal equations: A s_i = b, with A = V_i^T V_i and b = V_i^T r_i.
-        A = V_i.t() @ V_i  # shape (N, N)
-        b = V_i.t() @ r_i  # shape (N,)
-        # Solve for s_i; if A is not invertible, use a pseudo-inverse.
-        s_i = safe_solve(A, b)
-        # Store the coefficients
-        s[i, :] = s_i.detach().cpu().numpy()
-        # Compute Q[i] = V_i @ s_i, which is a flat vector of dimension d.
-        if force_range:
-            s_i = np.clip(s_i, 0.0, 1.0)
-        V_all = V_list[i]
-        Q_i_flat = V_all @ s_i  # shape (d,), the result of sV
-        # Unflatten Q_i back to the dictionary structure of H[i].
-        Q_i = unflatten_weights(Q_i_flat, H[i])
-        Q_update = Q_i
-        Q.append(Q_update)
-    args.s_maintain = copy.deepcopy(s)
-    return s, Q
+    # ------------------ 2. Solve for Coefficients 's' for ACTIVE clients ------------------
+
+    # Form the normal equations matrix A = Q_stale.T @ Q_stale. This is done only once.
+    A = Q_stale_adpt.t() @ Q_stale_adpt  # Shape: (N_reduced, N_reduced)
+    lambda_reg = args.lam
+    A_reg = A + lambda_reg * torch.eye(N_reduced, device=device)
+
+    # Create index masks for active and inactive clients
+    all_clients_indices = torch.arange(N, device=device)
+    active_indices = torch.tensor(chosen_clients, dtype=torch.long, device=device)
+
+    # Select the "true" gradients only for the active clients
+    G_active = G[active_indices]  # Shape: (num_active, d_adpt)
+
+    # Form the right-hand side B = G @ Q_stale for active clients
+    B_active = G_active @ Q_stale_adpt  # Shape: (num_active, N_reduced)
+
+    # Solve the system A @ S.T = B.T for the active clients' coefficients
+    try:
+        S_active_T = torch.linalg.solve(A_reg, B_active.t())
+    except torch.linalg.LinAlgError:
+        S_active_T = torch.linalg.lstsq(A_reg, B_active.t()).solution
+
+    S_active = S_active_T.t()  # Shape: (num_active, N_reduced)
+
+    # ------------------ 3. Combine New and Old Coefficients ------------------
+
+    # Initialize the full S matrix
+    S = torch.zeros(N, N_reduced, device=device)
+
+    # Get the previous coefficients for inactive clients
+    if hasattr(args, 's_maintain') and args.s_maintain is not None:
+        # Create a boolean mask for inactive clients
+        is_inactive_mask = torch.ones(N, dtype=torch.bool, device=device)
+        is_inactive_mask[active_indices] = False
+        inactive_indices = all_clients_indices[is_inactive_mask]
+
+        if inactive_indices.numel() > 0:
+            s_previous_tensor = torch.from_numpy(args.s_maintain).to(device)
+            S_inactive = s_previous_tensor[inactive_indices]
+            S[inactive_indices] = S_inactive
+
+    # Place the newly computed coefficients for active clients
+    S[active_indices] = S_active
+
+    if args.force_range:
+        S = torch.clamp(S, 0.0, 1.0)
+
+    # Update the stored coefficients for the next round
+    s_numpy = S.detach().cpu().numpy()
+    args.s_maintain = copy.deepcopy(s_numpy)
+
+    # ------------------ 4. Compute Corrected Gradients 'Q' for ALL clients ------------------
+
+    # Compute the batch of flattened Q vectors using the complete S matrix
+    Q_flat_batch = S @ Q_stale_full.t()  # Shape: (N, d_full)
+
+    # Unflatten each row in the batch back to the dictionary structure
+    Q = [unflatten_weights(q_flat, template) for q_flat in Q_flat_batch]
+
+    return s_numpy, Q
 
 
-def updateV_direct_maintain(H, models_gradient_dict, clients_within, args):
+
+
+
+def updateV_direct_stable(H, models_gradient_dict, clients_within, args):
     """
-    H: list of dictionaries representing q_i^t for each client i.
-    models_gradient_dict: list of dictionaries representing G_i^t for each client i.
+    Solves for optimal coefficients 's' and computes corrected gradients 'Q'.
 
-    Returns:
-      s: a numpy array of shape (N,N) with the optimal coefficients s_{ij}.
-      Q: a list of dictionaries, where Q[i] = sum_j s_{ij} * (flattened difference corresponding to H[j]-H[i])
-         (unflattened to have same structure as H[i]).
+    This version is numerically stable and computationally efficient via vectorization.
     """
+    # ------------------ 1. Setup and Flatten Tensors ONCE ------------------
 
-    # helper function to flatten a dict of tensors into a 1d tensor.
-    # We sort the keys so that the order is deterministic.
-    def flatten_weights(weights):
-        return torch.cat([weights[k].reshape(-1) for k in sorted(weights.keys())])
-
-    # helper function to unflatten a flat tensor back into the dict shape given by template.
-    def unflatten_weights(flat_tensor, template):
-        new_weights = {}
-        pointer = 0
-        for k in sorted(template.keys()):
-            shape = template[k].shape
-            numel = template[k].numel()
-            new_weights[k] = flat_tensor[pointer:pointer + numel].view(shape)
-            pointer += numel
-        return new_weights
-
-
-    # clients_within = list(clients_within.keys())
-    # clients_within = [i for i in range(40)]  # include all clients
     N = len(H)
-
-
-    # First, build V_list and r_list where each V_list[i] is a matrix (d x N) and each r_list[i] is a vector (d,)
-    V_list = []  # Q actually, stale
-    r_list = []  # new gradient
-
-    # Determine the dimension by flattening one of the H dictionaries
+    H_reduced = [H[client] for client in clients_within]
     N_reduced = len(clients_within)
 
-    force_range = args.force_range
+    if N_reduced == 0:
+        return np.zeros((N, 0)), []
 
-    for i in range(N):
-        # Build V_i: for each j, if j==i then a zero vector, else flatten( H[j]-H[i] )
-        V_i_cols = []
-        for j in clients_within:
-            v_ij = flatten_weights(H[j])
-            # rescale it to 1/N_reduced
-            v_ij = v_ij / N_reduced
-            # Make it a column vector
-            V_i_cols.append(v_ij.unsqueeze(1))  # shape (d,1)
-        # Stack columns to form V_i (shape d x N)
-        V_i = torch.cat(V_i_cols, dim=1)
-        V_list.append(V_i)
+    template = H[0]
+    device = next(iter(template.values())).device
 
-    # Now solve for s for each i and compute Q.
-    Q = []  # Q[i] will be unflattened back to dict format
+    # Stack all stale gradients (from H) into a single matrix Q_stale
+    # This replaces the entire memory-intensive V_list from the old code.
+    if args.lastLayer:
+        G = torch.stack([last_layer_flatten_weights(g) for g in models_gradient_dict])
+        Q_stale_full = torch.stack([flatten_weights(h) / N_reduced for h in H_reduced], dim=1)
+        Q_stale_adpt = torch.stack([last_layer_flatten_weights(h) / N_reduced for h in H_reduced], dim=1)
+    else:
+        G = torch.stack([flatten_weights(g) for g in models_gradient_dict])
+        Q_stale_full = torch.stack([flatten_weights(h) / N_reduced for h in H_reduced], dim=1)
+        Q_stale_adpt = Q_stale_full
 
-    for i in range(N):
-        s_i = args.s_maintain[i, :]  # use the maintained s_i
-        # Compute Q[i] = V_i @ s_i, which is a flat vector of dimension d.
-        if force_range:
-            s_i = np.clip(s_i, 0.0, 1.0)
-        V_all = V_list[i]
-        Q_i_flat = V_all @ s_i  # shape (d,), the result of sV
-        # Unflatten Q_i back to the dictionary structure of H[i].
-        Q_i = unflatten_weights(Q_i_flat, H[i])
-        Q_update = Q_i
-        Q.append(Q_update)
+    # Shapes:
+    # G: (N, d_adpt)
+    # Q_stale_adpt: (d_adpt, N_reduced)
+    # Q_stale_full: (d_full, N_reduced)
+
+    # ------------------ 2. Solve for Coefficients 's' in a Batched Way ------------------
+
+    # Form the normal equations matrix A = Q_stale.T @ Q_stale. This is done only once.
+    A = Q_stale_adpt.t() @ Q_stale_adpt  # Shape: (N_reduced, N_reduced)
+
+    # Form the batched right-hand side B = G @ Q_stale_adpt
+    B = G @ Q_stale_adpt  # Shape: (N, N_reduced)
+
+    # Add a small regularization term (ridge regression) for numerical stability.
+    # This ensures the matrix A is invertible and well-conditioned.
+    lambda_reg = args.lam
+    A_reg = A + lambda_reg * torch.eye(N_reduced, device=device)
+
+    # Solve the batched system A @ S.T = B.T for S using a stable solver.
+    try:
+        S_T = torch.linalg.solve(A_reg, B.t())  # Result shape (N_reduced, N)
+    except torch.linalg.LinAlgError:
+        # Fallback to a more robust least-squares solver if needed
+        S_T = torch.linalg.lstsq(A_reg, B.t()).solution
+
+    S = S_T.t()  # Transpose to get S with shape (N, N_reduced)
+
+    if args.force_range:
+        S = torch.clamp(S, 0.0, 1.0)
+
+    s_numpy = S.detach().cpu().numpy()
+    args.s_maintain = copy.deepcopy(s_numpy)
+
+    # ------------------ 3. Compute Corrected Gradients 'Q' in a Batched Way ------------------
+
+    # Compute the batch of flattened Q vectors: Q_flat = S @ Q_stale_full.T
+    Q_flat_batch = S @ Q_stale_full.t()  # Shape: (N, d_full)
+
+    # Unflatten each row in the batch back to the dictionary structure
+    Q = [unflatten_weights(q_flat, template) for q_flat in Q_flat_batch]
+
+    return s_numpy, Q
+
+
+def updateV_direct_maintain_stable(old_global_weights, allnew_gradients, clients_within_global, args):
+    """
+    Computes the corrected gradients 'Q' using a pre-computed set of coefficients 's'.
+
+    This version is vectorized for memory and computational efficiency.
+    """
+    # allnew_gradients is not used in this function, but included for a consistent API.
+
+    # ------------------ 1. Setup and Flatten Tensors ONCE ------------------
+
+    N = len(old_global_weights)
+    N_reduced = len(clients_within_global)
+    if N_reduced == 0:
+        return []
+
+    template = old_global_weights[0]
+    device = next(iter(template.values())).device
+
+    # Convert the maintained numpy array 's' to a tensor on the correct device.
+    s_tensor = torch.from_numpy(args.s_maintain).to(device)
+
+    # Create the stale gradients matrix Q_stale ONCE by stacking the flattened weights.
+    # This single matrix replaces the entire memory-intensive V_list.
+    Q_stale_cols = [flatten_weights(old_global_weights[j]) / N_reduced for j in clients_within_global]
+    Q_stale = torch.stack(Q_stale_cols, dim=1)  # Shape: (d, N_reduced)
+
+    # ------------------ 2. Compute Corrected Gradients 'Q' in a Batched Way ------------------
+
+    S = s_tensor  # Shape: (N, N_reduced)
+
+    # Optional clipping from the original code
+    if args.force_range:
+        S = torch.clamp(S, 0.0, 1.0)
+
+    # Compute the batch of flattened Q vectors with one matrix multiplication.
+    Q_flat_batch = S @ Q_stale.t()  # Resulting shape: (N, d)
+
+    # ------------------ 3. Unflatten the Results ------------------
+
+    # Unflatten each row in the batch back to the dictionary structure.
+    Q = [unflatten_weights(q_flat, template) for q_flat in Q_flat_batch]
+
     return Q
+
+
+# def updateV_direct_maintain(H, models_gradient_dict, clients_within, args):
+#     """
+#     H: list of dictionaries representing q_i^t for each client i.
+#     models_gradient_dict: list of dictionaries representing G_i^t for each client i.
+#
+#     Returns:
+#       s: a numpy array of shape (N,N) with the optimal coefficients s_{ij}.
+#       Q: a list of dictionaries, where Q[i] = sum_j s_{ij} * (flattened difference corresponding to H[j]-H[i])
+#          (unflattened to have same structure as H[i]).
+#     """
+#
+#     # helper function to flatten a dict of tensors into a 1d tensor.
+#     # We sort the keys so that the order is deterministic.
+#     def flatten_weights(weights):
+#         return torch.cat([weights[k].reshape(-1) for k in sorted(weights.keys())])
+#
+#     # helper function to unflatten a flat tensor back into the dict shape given by template.
+#     def unflatten_weights(flat_tensor, template):
+#         new_weights = {}
+#         pointer = 0
+#         for k in sorted(template.keys()):
+#             shape = template[k].shape
+#             numel = template[k].numel()
+#             new_weights[k] = flat_tensor[pointer:pointer + numel].view(shape)
+#             pointer += numel
+#         return new_weights
+#
+#
+#     # clients_within = list(clients_within.keys())
+#     # clients_within = [i for i in range(40)]  # include all clients
+#     N = len(H)
+#
+#
+#     # First, build V_list and r_list where each V_list[i] is a matrix (d x N) and each r_list[i] is a vector (d,)
+#     V_list = []  # Q actually, stale
+#     r_list = []  # new gradient
+#
+#     # Determine the dimension by flattening one of the H dictionaries
+#     N_reduced = len(clients_within)
+#
+#     force_range = args.force_range
+#
+#     for i in range(N):
+#         # Build V_i: for each j, if j==i then a zero vector, else flatten( H[j]-H[i] )
+#         V_i_cols = []
+#         for j in clients_within:
+#             v_ij = flatten_weights(H[j])
+#             # rescale it to 1/N_reduced
+#             v_ij = v_ij / N_reduced
+#             # Make it a column vector
+#             V_i_cols.append(v_ij.unsqueeze(1))  # shape (d,1)
+#         # Stack columns to form V_i (shape d x N)
+#         V_i = torch.cat(V_i_cols, dim=1)
+#         V_list.append(V_i)
+#
+#     # Now solve for s for each i and compute Q.
+#     Q = []  # Q[i] will be unflattened back to dict format
+#
+#     for i in range(N):
+#         s_i = args.s_maintain[i, :]  # use the maintained s_i
+#         # Compute Q[i] = V_i @ s_i, which is a flat vector of dimension d.
+#         if force_range:
+#             s_i = np.clip(s_i, 0.0, 1.0)
+#         V_all = V_list[i]
+#         Q_i_flat = V_all @ s_i  # shape (d,), the result of sV
+#         # Unflatten Q_i back to the dictionary structure of H[i].
+#         Q_i = unflatten_weights(Q_i_flat, H[i])
+#         Q_update = Q_i
+#         Q.append(Q_update)
+#     return Q
 
 
 
@@ -695,21 +935,30 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
             # random sample k clients as the base
             if args.OMP is True: # change OMP to make it only work on the first 5 rounds
                 if total_rounds <= 5:
-                    clients_within, s = OMP(stale_gradients=old_global_weights, fresh_gradients=allnew_gradients, d_list=dis_s,
+                # if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
+                    if args.improveOMP is True:
+                        clients_within, s = random_improve(stale_gradients=old_global_weights, fresh_gradients=allnew_gradients,
+                                                d_list=dis_s,
+                                                p_list=args.p_all, k=args.K, Lambda=args.lam, args=args)
+                    else:
+                        clients_within, s = OMP(stale_gradients=old_global_weights, fresh_gradients=allnew_gradients, d_list=dis_s,
                                         p_list=args.p_all, k=args.K, Lambda=args.lam, args=args)
+
                     args.clients_within_global = clients_within
                     args.s_maintain = copy.deepcopy(s)
                     # save clients_within_global
                     clientSet_file = save_path + 'cSet.pkl'
                     optimal_sampling.append_to_pickle(clientSet_file, clients_within)
-                    Q = updateV_direct_maintain(old_global_weights, allnew_gradients, args.clients_within_global, args)
+                    Q = updateV_direct_maintain_stable(old_global_weights, allnew_gradients, args.clients_within_global, args)
                 else: # after round 5, use previous clients_within_global
                     clients_within = args.clients_within_global
                     # optimize optimal s
-                    if total_rounds % args.s_slot == 0:
-                        s, Q = updateV_direct(old_global_weights, allnew_gradients, clients_within, args)
+                    if args.s_slot == 0:  # only update si when client is active
+                        s, Q = updateV_direct_stable_active(old_global_weights, allnew_gradients, clients_within, args, chosen_clients)
+                    elif total_rounds % args.s_slot == 0:
+                        s, Q = updateV_direct_stable(old_global_weights, allnew_gradients, clients_within, args)
                     else:
-                        Q = updateV_direct_maintain(old_global_weights, allnew_gradients, clients_within, args)
+                        Q = updateV_direct_maintain_stable(old_global_weights, allnew_gradients, clients_within, args)
                 # Q = updateV_direct_maintain(old_global_weights, allnew_gradients, args.clients_within_global, args)
 
 
@@ -748,14 +997,14 @@ def federated_stale(global_weights, models_gradient_dict, local_data_num, p_list
 
                 if args.effV is True:
                     if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
-                        s, Q = updateV_direct(old_global_weights_previous, old_global_weights, clients_within, args)
+                        s, Q = updateV_direct_stable(old_global_weights_previous, old_global_weights, clients_within, args)
                     else:
-                        Q = updateV_direct_maintain(old_global_weights, allnew_gradients, clients_within, args)
+                        Q = updateV_direct_maintain_stable(old_global_weights, allnew_gradients, clients_within, args)
                 else:
                     if (total_rounds % args.s_slot == 0) or (total_rounds <= 5):
-                        s, Q = updateV_direct(old_global_weights, allnew_gradients, clients_within, args)
+                        s, Q = updateV_direct_stable(old_global_weights, allnew_gradients, clients_within, args)
                     else:
-                        Q = updateV_direct_maintain(old_global_weights, allnew_gradients, clients_within, args)
+                        Q = updateV_direct_maintain_stable(old_global_weights, allnew_gradients, clients_within, args)
 
             # record optimal s
             s_file = save_path + 's.pkl'

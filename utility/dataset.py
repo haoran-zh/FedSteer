@@ -146,7 +146,7 @@ def noniid(dataset, min_data_num, max_data_num, num_users, class_ratio):
 
     all_client_indices = np.arange(num_users)
     np.random.shuffle(all_client_indices)
-    num_majority_clients = int(0.9 * num_users)
+    num_majority_clients = int(0.9 * num_users) # only updated for jongik server
     majority_client_ids = all_client_indices[:num_majority_clients]
     minority_client_ids = all_client_indices[num_majority_clients:]
 
