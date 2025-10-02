@@ -1,27 +1,19 @@
 #!/bin/bash
-# run main2.py
-# main2.py use offset, in my understanding, the sampling is better
-# 1 task experiments
+
 seedlist=(11 12 13 14 15 16 17 18 19)
 a=1
 unbalance_value=(0.0)
 dlist=(0.1) # data ratio
-#C=(0.025 0.05 0.1 0.2) # active rate
 C=(0.1) # active rate
-# previous 3 task nnn, all f2 f f
 task_list=("fashion_mnist")
-# task_idx="fashion_mnist"
 iid="noniid noniid noniid noniid noniid"
 client_n=100
-class_ratio=0.5 # previous 0.2
-# 最开始subset是0.5
-# experiment goal: figure out if loss is better when active rate is lower
+class_ratio=0.5
 for task_idx in "${task_list[@]}"; do
 for uv in "${unbalance_value[@]}"; do
   for d in "${dlist[@]}"; do
     for c in "${C[@]}"; do
     for sd in "${seedlist[@]}"; do
-      #for fr in "${fr_list[@]}"; do
 
 # python main2.py --randomKglobal 10 --V_direct --s_slot 5 --norm_candidates --powerfulCNN --givenProb 5.0 --skipOS --stale --stale_b0 1.0 --stale_b 1.0 --venn_list 0.9 0.1 0.0 --freshness --fairness notfair --data_ratio $d --unbalance $uv 1.0 --alpha $a --notes "$task_idx"_d"$d"_class"$class_ratio"c"$c"uvNo_a5.0B_OV_direct_Grandom10s5_$sd --alpha_loss --optimal_sampling --C $c --num_clients $client_n --class_ratio $class_ratio $class_ratio $class_ratio $class_ratio $class_ratio --iid_type $iid --task_type $task_idx --algo_type proposed --seed $sd --cpumodel --local_epochs 5 5 5 5 5 --round_num 150 --insist
 
