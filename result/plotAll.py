@@ -1,22 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Jul 29 12:31:45 2023
-
-@author: msiew, haoranz5
-"""
-
-# mmm (diffmodels) noniid
-
-# currently----
-# noniid mcm
-# iid mcf
-
-# future----
-# iid mcf mcf
-# noniid mc mc mc 
-# non iid m c_c100 m c c_100
-# non iid m c f, m c f
 import numpy as np
 import matplotlib.pyplot as plt
 from parserplot import ParserArgs
