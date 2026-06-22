@@ -4,7 +4,7 @@ This repository provides the implementation of **FedSteer**, accepted to **UAI 2
 
 FedSteer addresses a key failure mode in federated learning with partial client participation: stale updates from rarely active clients can become so misaligned with the current model that directly reusing them destabilizes training. FedSteer corrects stale updates by projecting client gradients into a dynamic low-dimensional gradient subspace, caching stable projection coordinates, and reusing those coordinates with the latest subspace to steer inactive clients' historical information toward the current global objective.
 
-Paper: [arXiv 2606.10124](https://arxiv.org/html/2606.10124v1)
+Paper: [arXiv 2606.10124](https://arxiv.org/abs/2606.10124v1)
 
 ## Overview
 
@@ -58,19 +58,20 @@ The core dependencies are PyTorch, TorchVision, NumPy, tqdm, and CVXPY. If your 
 
 Run commands from the repository root.
 
-Example CIFAR-10 run:
+Example Fashion-MNIST run:
 
 ```bash
 python main2.py \
-  --task_type cifar10 \
+  --task_type fashion_mnist \
   --iid_type noniid \
   --algo_type proposed \
-  --powerfulCNN \
-  --optimal_sampling \
-  --alpha_loss \
-  --C 0.1 \
-  --num_clients 100 \
-  --round_num 150 \
+  --data_ratio 0.2 \
+  --class_ratio 0.5 \
+  --C 0.2 \
+  --num_clients 30 \
+  --local_epochs 1 \
+  --round_num 20 \
+  --notes quickstart_fashion_mnist \
   --insist
 ```
 
