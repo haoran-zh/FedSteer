@@ -9,14 +9,12 @@ Paper: [arXiv 2606.10124](https://arxiv.org/html/2606.10124v1)
 ## Overview
 
 <p align="center">
-  <img src="figures/overview.pdf" width="820" alt="FedSteer overview">
+  <img src="figures/overview.png" width="820" alt="FedSteer overview">
 </p>
 
 <p align="center">
   <em>FedSteer projects an active client's gradient onto a dynamic subspace, caches the low-dimensional coordinates, and later reuses those coordinates with the evolved subspace to estimate a corrected update for inactive clients.</em>
 </p>
-
-If you keep the original plot as a PDF, place it at `figures/overview.pdf`; for GitHub rendering, export the same figure as `figures/overview.png`.
 
 ## Highlights
 
